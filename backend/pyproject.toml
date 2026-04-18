@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "lms-backend"
+version = "0.1.0"
+description = "Multi-tenant SaaS LMS backend"
+authors = ["Your Name <you@example.com>"]
+packages = [
+  { include = "app" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.111.1"
+uvicorn = "^0.24.0"
+sqlalchemy = "^2.0.25"
+alembic = "^1.12.0"
+psycopg = { version = "^3.3.3", extras = ["binary"] }
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+bcrypt = "^4.0.1"
+python-multipart = "^0.0.7"
+python-dotenv = "^1.0.0"
+pydantic-settings = "^2.0.0"
+aioboto3 = "^11.0.0"
+stripe = "^6.0.0"
+httpx = "^0.26.0"
+reportlab = "^4.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.0"
+pytest-asyncio = "^0.21.0"
+black = "^24.9.0"
+ruff = "^0.0.287"
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
