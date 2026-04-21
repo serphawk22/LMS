@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from './NotificationBell';
 import { ProfileDropdown } from './ProfileDropdown';
+import ThemeToggle from './ThemeToggle';
 
 interface ModernHeaderProps {
   showNav?: boolean;
@@ -18,21 +20,22 @@ const INSTRUCTOR_ROLES = ['instructor', ...ADMIN_ROLES];
 
 export function ModernHeader({ showNav = true, userName = 'User', userInitials = 'U', userImageUrl }: ModernHeaderProps) {
   const { authenticated, role } = useAuth();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAdmin = role ? ADMIN_ROLES.includes(role) : false;
   const isInstructor = role ? INSTRUCTOR_ROLES.includes(role) : false;
 
   const navItems = [
-    { href: '/courses', label: 'Courses', icon: '📚' },
-    { href: '/dashboard', label: 'Dashboard', icon: '📊', show: authenticated },
-    { href: '/assignments', label: 'Assignments', icon: '✅', show: authenticated },
-    { href: '/instructor', label: 'Instructor', icon: '👨‍🏫', show: isInstructor },
-    { href: '/gamification', label: 'Gamification', icon: '🏆', show: authenticated },
-    { href: '/admin', label: 'Admin', icon: '⚙️', show: isAdmin },
-    { href: '/analytics', label: 'Analytics', icon: '📈', show: isAdmin },
-    { href: '/certificates', label: 'Certificates', icon: '🎖️', show: authenticated },
-  ].filter(item => item.show !== false);
+    { href: '/dashboard', label: 'Home', icon: '🏠', active: true },
+    { href: '/courses', label: 'Learn', icon: '📚' },
+    { href: '/support', label: 'Support', icon: '🆘' },
+    { href: '/discussions', label: 'Discussions', icon: '💬' },
+  ];
+
+  const handleCalendarClick = () => {
+    router.push('/calendar');
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-100/50 bg-white/95 backdrop-blur-md shadow-sm">
@@ -55,7 +58,11 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
                 <Link
                   key={idx}
                   href={item.href}
-                  className="px-3 py-2 text-sm font-medium text-slate-600 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    item.active
+                      ? 'text-blue-600 bg-blue-50 border-b-2 border-blue-600'
+                      : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                  }`}
                 >
                   <span className="hidden md:inline">{item.label}</span>
                   <span className="md:hidden">{item.icon}</span>
@@ -64,10 +71,31 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
             </nav>
           )}
 
-          {/* Right side - Profile and Mobile Menu */}
-          <div className="flex items-center gap-4">
-            {authenticated && <NotificationBell />}
-            {authenticated && <ProfileDropdown userInitials={userInitials} userName={userName} userImageUrl={userImageUrl} />}
+          {/* Right side - Icons and Profile */}
+          <div className="flex items-center gap-3">
+            {authenticated && (
+              <>
+                {/* Calendar Icon */}
+                <button 
+                  onClick={handleCalendarClick}
+                  className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 cursor-pointer"
+                  title="Calendar"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </button>
+
+                {/* Notifications */}
+                <NotificationBell />
+
+                {/* Profile */}
+                <ProfileDropdown userInitials={userInitials} userName={userName} userImageUrl={userImageUrl} />
+
+                {/* Theme Toggle */}
+                <ThemeToggle />
+              </>
+            )}
 
             {!authenticated && (
               <div className="hidden sm:flex items-center gap-2">

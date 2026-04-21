@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { fetchCurrentUser } from '@/services/auth';
-import { fetchDashboardOverview, fetchWeeklyStats, fetchDailyLearningVideos } from '@/services/dashboard';
+import { fetchDashboardOverview, fetchWeeklyStats, fetchDailyLearningVideos, uploadDailyLearningVideo } from '@/services/dashboard';
 import { fetchQuizAttempts, fetchQuizzes } from '@/services/quiz';
 import { fetchStudentAssignments } from '@/services/assignments';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +43,15 @@ export default function DashboardPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [quizAttempts, setQuizAttempts] = useState<QuizAttemptRead[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [videoTitle, setVideoTitle] = useState('');
+  const [videoDescription, setVideoDescription] = useState('');
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState('');
+  const [vimeoUrl, setVimeoUrl] = useState('');
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState('');
+  const [uploadError, setUploadError] = useState('');
+  const [submittedVideo, setSubmittedVideo] = useState<DailyLearningVideo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -182,12 +191,124 @@ export default function DashboardPage() {
       if (canvasRef.current) {
         canvasRef.current = null;
       }
+      if (videoPreviewUrl) {
+        URL.revokeObjectURL(videoPreviewUrl);
+      }
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
     };
-  }, []);
+  }, [videoPreviewUrl]);
+
+  useEffect(() => {
+    if (!submittedVideo && user && dailyVideos.length > 0) {
+      const existing = dailyVideos.find((video) => video.user_id === user.id);
+      if (existing) {
+        setSubmittedVideo(existing);
+      }
+    }
+  }, [dailyVideos, submittedVideo, user]);
+
+  const resetVideoSelection = () => {
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
+    setSelectedVideoFile(null);
+    setVideoPreviewUrl('');
+  };
+
+  const isValidVimeoUrl = (value: string): boolean => {
+    const trimmed = value.trim();
+    return /^(?:https?:\/\/)?(?:www\.)?(?:player\.)?vimeo\.com\/(?:video\/)?\d+\/?$/i.test(trimmed);
+  };
+
+  const handleVideoFileSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    setUploadError('');
+    setUploadMessage('');
+
+    const file = event.target.files?.[0] ?? null;
+    if (!file) {
+      resetVideoSelection();
+      return;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      setUploadError('Please select a valid video file.');
+      resetVideoSelection();
+      return;
+    }
+
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setUploadError('Video file is too large. Please use a file smaller than 100MB.');
+      resetVideoSelection();
+      return;
+    }
+
+    if (videoPreviewUrl) {
+      URL.revokeObjectURL(videoPreviewUrl);
+    }
+
+    setSelectedVideoFile(file);
+    setVideoPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const submitDailyVideo = async () => {
+    setUploadError('');
+    setUploadMessage('');
+
+    if (!videoTitle.trim() || !videoDescription.trim()) {
+      setUploadError('Title and description are required.');
+      return;
+    }
+
+    const hasFile = Boolean(selectedVideoFile);
+    const hasLink = Boolean(vimeoUrl.trim());
+
+    if (hasFile && hasLink) {
+      setUploadError('Please choose either a video file or a Vimeo link, not both.');
+      return;
+    }
+
+    if (!hasFile && !hasLink) {
+      setUploadError('Please upload a video file or enter a Vimeo link.');
+      return;
+    }
+
+    if (hasLink && !isValidVimeoUrl(vimeoUrl)) {
+      setUploadError('Please enter a valid Vimeo link.');
+      return;
+    }
+
+    setIsUploadingVideo(true);
+
+    try {
+      const result = await uploadDailyLearningVideo(
+        videoTitle.trim(),
+        videoDescription.trim(),
+        selectedVideoFile,
+        hasLink ? vimeoUrl.trim() : undefined,
+      );
+
+      setSubmittedVideo(result);
+      setDailyVideos((prev) => [result, ...prev.filter((video) => video.id !== result.id)]);
+      setUploadMessage('You have submitted today’s learning.');
+      setVideoTitle('');
+      setVideoDescription('');
+      setVimeoUrl('');
+      resetVideoSelection();
+      setShowRecorder(true);
+    } catch (err: unknown) {
+      setUploadError(
+        typeof err === 'object' && err !== null && 'message' in err
+          ? (err as { message: string }).message
+          : 'Upload failed. Please try again.',
+      );
+    } finally {
+      setIsUploadingVideo(false);
+    }
+  };
 
   const getSupportedMimeType = () => {
     if (typeof MediaRecorder === 'undefined') {
@@ -426,7 +547,7 @@ export default function DashboardPage() {
 
   if (!initialized) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      <div className="min-h-screen bg-[var(--bg-color)]">
         <ModernHeader />
         <main className="px-4 sm:px-6 lg:px-8 py-16">
           <div className="mx-auto max-w-6xl">
@@ -440,7 +561,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white via-purple-50 to-pink-50 relative">
+    <div className="min-h-screen bg-[var(--bg-color)] relative">
       {/* Decorative background elements */}
       <div className="fixed top-0 right-0 -z-10 opacity-40">
         <div className="w-96 h-96 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full blur-3xl"></div>
@@ -467,55 +588,63 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Welcome Section */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 p-8 sm:p-12">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16" />
+          {!loading && (
+            <div className="dashboard-container">
+              {/* Left Column - 70% */}
+              <div className="space-y-8">
+                {/* Welcome Section */}
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 p-6 sm:p-10">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12" />
 
-            <div className="relative">
-              <p className="text-blue-100 text-sm font-semibold uppercase tracking-wide mb-2">Welcome back</p>
-              <h1 className="text-4xl sm:text-5xl font-bold text-white mb-3">
-                Hey, {welcomeName}! 👋
-              </h1>
-              <p className="text-blue-50 text-lg max-w-2xl">
-                {loading ? 'Loading your learning journey...' : `You're making great progress. Keep learning and growing!`}
-              </p>
+                  <div className="relative">
+                    <p className="text-blue-100 text-sm font-semibold uppercase tracking-wide mb-2">Welcome back</p>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
+                      Hey, {welcomeName}! 👋
+                    </h1>
+                    <p className="text-blue-50 text-base max-w-2xl mb-6">
+                      {loading ? 'Loading your learning journey...' : `You're making great progress. Keep learning and growing!`}
+                    </p>
 
-              {!loading && weeklyStats && (
-                <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
-                  <div className="bg-white/20 backdrop-blur rounded-lg p-4">
-                    <p className="text-blue-100 text-sm font-medium">This Week</p>
-                    <p className="text-3xl font-bold text-white mt-1">{weeklyStats.courses_completed}</p>
-                    <p className="text-blue-100 text-xs">Courses Completed</p>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur rounded-lg p-4">
-                    <p className="text-blue-100 text-sm font-medium">Quizzes</p>
-                    <p className="text-3xl font-bold text-white mt-1">{weeklyStats.quizzes_attempted}</p>
-                    <p className="text-blue-100 text-xs">Attempted</p>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur rounded-lg p-4">
-                    <p className="text-blue-100 text-sm font-medium">Assignments</p>
-                    <p className="text-3xl font-bold text-white mt-1">{weeklyStats.assignments_submitted}</p>
-                    <p className="text-blue-100 text-xs">Submitted</p>
-                  </div>
-                  <div className="bg-white/20 backdrop-blur rounded-lg p-4">
-                    <p className="text-blue-100 text-sm font-medium">Lessons</p>
-                    <p className="text-3xl font-bold text-white mt-1">{weeklyStats.lessons_completed}</p>
-                    <p className="text-blue-100 text-xs">Completed</p>
+                    {!loading && weeklyStats && (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-white/20 backdrop-blur rounded-lg p-3">
+                          <p className="text-blue-100 text-sm font-medium">This Week</p>
+                          <p className="text-2xl font-bold text-white mt-1">{weeklyStats.courses_completed}</p>
+                          <p className="text-blue-100 text-xs">Courses Completed</p>
+                        </div>
+                        <div className="bg-white/20 backdrop-blur rounded-lg p-3">
+                          <p className="text-blue-100 text-sm font-medium">Quizzes</p>
+                          <p className="text-2xl font-bold text-white mt-1">{weeklyStats.quizzes_attempted}</p>
+                          <p className="text-blue-100 text-xs">Attempted</p>
+                        </div>
+                        <div className="bg-white/20 backdrop-blur rounded-lg p-3">
+                          <p className="text-blue-100 text-sm font-medium">Assignments</p>
+                          <p className="text-2xl font-bold text-white mt-1">{weeklyStats.assignments_submitted}</p>
+                          <p className="text-blue-100 text-xs">Submitted</p>
+                        </div>
+                        <div className="bg-white/20 backdrop-blur rounded-lg p-3">
+                          <p className="text-blue-100 text-sm font-medium">Lessons</p>
+                          <p className="text-2xl font-bold text-white mt-1">{weeklyStats.lessons_completed}</p>
+                          <p className="text-blue-100 text-xs">Completed</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
 
-          {!loading && (
-            <div className="grid gap-12 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-12">
                 <section>
-                  <div className="flex items-center justify-between mb-8">
-                    <div>
-                      <h2 className="text-3xl font-bold text-slate-900">📚 My Courses</h2>
-                      <p className="text-slate-600 mt-2">Continue learning where you left off</p>
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.523 0 10-4.998 10-10.747 0-6.002-4.477-10.747-10-10.747z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-slate-900">My Courses</h2>
+                        <p className="text-slate-600">Continue learning where you left off</p>
+                      </div>
                     </div>
                     <Link
                       href="/courses"
@@ -529,7 +658,7 @@ export default function DashboardPage() {
                   </div>
 
                   {((dashboardOverview?.continue_learning?.length ?? 0) || (dashboardOverview?.enrolled_courses?.length ?? 0)) > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {(dashboardOverview?.continue_learning?.length ? dashboardOverview.continue_learning : dashboardOverview?.enrolled_courses || [])
                         .slice(0, 4)
                         .map((item) => (
@@ -562,10 +691,17 @@ export default function DashboardPage() {
 
                 {assignments.length > 0 && (
                   <section>
-                    <div className="flex items-center justify-between mb-8">
-                      <div>
-                        <h2 className="text-3xl font-bold text-slate-900">📋 Assignments</h2>
-                        <p className="text-slate-600 mt-2">Assignments for your enrolled courses</p>
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                          <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-slate-900">Assignments</h2>
+                          <p className="text-slate-600">Assignments for your enrolled courses</p>
+                        </div>
                       </div>
                       <Link
                         href="/assignments"
@@ -578,7 +714,7 @@ export default function DashboardPage() {
                       </Link>
                     </div>
 
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-4">
                       {assignments.slice(0, 4).map((assignment) => (
                         <div key={assignment.id} className="modern-card p-4">
                           <div className="flex items-start justify-between gap-4">
@@ -595,7 +731,7 @@ export default function DashboardPage() {
                               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 assignment.submission ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {assignment.submission ? 'Submitted' : 'Not Submitted'}
+                                {assignment.submission ? 'Submitted' : 'Pending'}
                               </span>
                             </div>
                           </div>
@@ -612,51 +748,25 @@ export default function DashboardPage() {
                     </div>
                   </section>
                 )}
-
-                {quizAttempts.length > 0 && (
-                  <section>
-                    <div className="flex items-center justify-between mb-8">
-                      <div>
-                        <h2 className="text-3xl font-bold text-slate-900">📝 Recent Activity</h2>
-                        <p className="text-slate-600 mt-2">Your latest quiz attempts and submissions</p>
-                      </div>
-                      <Link
-                        href="/assignments"
-                        className="text-blue-600 hover:text-blue-700 font-semibold transition-colors flex items-center gap-2"
-                      >
-                        View All
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    </div>
-
-                    <div className="space-y-3">
-                      {quizAttempts.slice(0, 5).map((attempt) => (
-                        <div key={attempt.id} className="modern-card p-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-slate-900">Quiz Attempt</h4>
-                              <p className="text-sm text-slate-600 mt-1">
-                                Status: <span className="font-medium">{attempt.status}</span>
-                              </p>
-                            </div>
-                            {attempt.score !== null && (
-                              <div className="text-right">
-                                <p className="text-2xl font-bold text-green-600">{attempt.score}</p>
-                                <p className="text-xs text-slate-500">Score</p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )}
               </div>
 
-              <div className="space-y-8">
-                <AnnouncementsSection />
+              {/* Right Column - 30% */}
+              <div className="space-y-6">
+                <section className="modern-card p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-slate-900">Announcements</h3>
+                      <p className="text-sm text-slate-600">Stay updated with the latest news</p>
+                    </div>
+                  </div>
+
+                  <AnnouncementsSection />
+                </section>
 
                 <section className="modern-card p-6 bg-gradient-to-br from-purple-50 to-blue-50">
                   <div className="flex items-start justify-between gap-4 mb-4">
@@ -678,7 +788,7 @@ export default function DashboardPage() {
                     <div className="rounded-xl bg-white shadow-sm p-4">
                       {showRecorder ? (
                         <div className="space-y-4">
-                          <p className="text-slate-700">Your recorder is ready. Use the controls below to start and stop your learning capture.</p>
+                          <p className="text-slate-700">Your recorder is ready. Use the controls below to start and stop your learning capture, or submit a video upload or Vimeo link.</p>
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                             <button
                               type="button"
@@ -706,10 +816,130 @@ export default function DashboardPage() {
                               )}
                             </div>
                           )}
+
+                          {submittedVideo ? (
+                            <div className="space-y-4 rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <p className="text-sm font-semibold text-slate-900">You have submitted today's learning</p>
+                                  <p className="text-sm text-slate-600">Thank you for sharing your video.</p>
+                                </div>
+                                <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">
+                                  Submitted
+                                </span>
+                              </div>
+                              <div className="rounded-3xl overflow-hidden bg-slate-950">
+                                {submittedVideo.video_type === 'vimeo' ? (
+                                  <iframe
+                                    src={submittedVideo.video_url}
+                                    width="100%"
+                                    height="200"
+                                    allow="autoplay; fullscreen"
+                                    className="aspect-video w-full"
+                                    title={`Submitted Vimeo video by ${submittedVideo.user_name}`}
+                                  />
+                                ) : (
+                                  <video controls className="h-48 w-full bg-black">
+                                    <source src={submittedVideo.video_url} type="video/mp4" />
+                                    Your browser does not support the video tag.
+                                  </video>
+                                )}
+                              </div>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                <div className="rounded-2xl bg-white p-3 text-sm text-slate-600">
+                                  <p className="font-semibold text-slate-900">Uploaded by</p>
+                                  <p>{submittedVideo.user_name}</p>
+                                </div>
+                                <div className="rounded-2xl bg-white p-3 text-sm text-slate-600">
+                                  <p className="font-semibold text-slate-900">Time</p>
+                                  <p>{new Date(submittedVideo.uploaded_at).toLocaleString()}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                              <div className="grid gap-4">
+                                <div className="grid gap-3">
+                                  <label className="text-sm font-semibold text-slate-900">Video title</label>
+                                  <input
+                                    value={videoTitle}
+                                    onChange={(e) => setVideoTitle(e.target.value)}
+                                    className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500"
+                                    placeholder="What did you learn today?"
+                                  />
+                                </div>
+                                <div className="grid gap-3">
+                                  <label className="text-sm font-semibold text-slate-900">Short description</label>
+                                  <textarea
+                                    value={videoDescription}
+                                    onChange={(e) => setVideoDescription(e.target.value)}
+                                    rows={3}
+                                    className="min-h-[88px] rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500"
+                                    placeholder="Summarize your learning in a few lines"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="grid gap-4 lg:grid-cols-1">
+                                <div className="rounded-3xl border border-slate-200 bg-white p-4">
+                                  <p className="text-sm font-semibold text-slate-900 mb-3">Upload Video File</p>
+                                  <input
+                                    type="file"
+                                    accept="video/*"
+                                    onChange={handleVideoFileSelect}
+                                    className="w-full text-sm text-slate-700"
+                                  />
+                                  {selectedVideoFile ? (
+                                    <div className="mt-4 space-y-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-700">
+                                      <p className="font-medium text-slate-900">Selected file</p>
+                                      <p>{selectedVideoFile.name}</p>
+                                      <p>{(selectedVideoFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                                    </div>
+                                  ) : (
+                                    <p className="mt-3 text-sm text-slate-500">Choose an MP4 or supported video file from your device.</p>
+                                  )}
+                                  {videoPreviewUrl && (
+                                    <video controls className="mt-4 h-32 w-full rounded-3xl bg-black object-cover">
+                                      <source src={videoPreviewUrl} type={selectedVideoFile?.type || 'video/mp4'} />
+                                    </video>
+                                  )}
+                                </div>
+                                <div className="rounded-3xl border border-slate-200 bg-white p-4">
+                                  <p className="text-sm font-semibold text-slate-900 mb-3">Paste Vimeo Link</p>
+                                  <input
+                                    value={vimeoUrl}
+                                    onChange={(e) => setVimeoUrl(e.target.value)}
+                                    placeholder="https://vimeo.com/123456"
+                                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500"
+                                  />
+                                  <p className="mt-3 text-sm text-slate-500">Only one submission option is allowed.</p>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-col gap-3">
+                                <button
+                                  type="button"
+                                  onClick={submitDailyVideo}
+                                  disabled={isUploadingVideo}
+                                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition disabled:cursor-not-allowed disabled:opacity-60 hover:opacity-95"
+                                >
+                                  {isUploadingVideo ? 'Submitting...' : 'Record / Upload Learning'}
+                                </button>
+                                <p className="text-sm text-slate-500 text-center">You may submit either a file or a Vimeo link.</p>
+                              </div>
+
+                              {uploadError ? (
+                                <div className="rounded-2xl bg-rose-50 p-3 text-sm text-rose-700">{uploadError}</div>
+                              ) : null}
+                              {uploadMessage ? (
+                                <div className="rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-700">{uploadMessage}</div>
+                              ) : null}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="space-y-4">
-                          <p className="text-slate-700">Ready to share today’s learning? Use the button below to record your quick learning update.</p>
+                          <p className="text-slate-700">Ready to share today's learning? Use the button below to record your quick learning update.</p>
                           <button
                             type="button"
                             onClick={() => setShowRecorder(true)}
@@ -722,7 +952,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-                      Only students can share today&rsquo;s learning videos, but everyone can watch the latest uploads.
+                      Only students can share today's learning videos, but everyone can watch the latest uploads.
                     </div>
                   )}
                 </section>
@@ -730,7 +960,7 @@ export default function DashboardPage() {
                 <section className="modern-card p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="font-bold text-slate-900 mb-1">🎬 Today’s Learning Videos</h3>
+                      <h3 className="font-bold text-slate-900 text-lg">🎬 Today's Learning Videos</h3>
                       <p className="text-sm text-slate-600">Latest student stories shared in short clips.</p>
                     </div>
                     <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
@@ -739,17 +969,17 @@ export default function DashboardPage() {
                   </div>
 
                   {dailyVideos.length > 0 ? (
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-4">
                       {dailyVideos.map((video) => (
                         <div key={video.id} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
                           <div className="flex items-start justify-between gap-3 mb-3">
                             <div>
                               <h4 className="font-semibold text-slate-900">{video.user_name}</h4>
                               <p className="text-sm text-slate-700 mt-1 font-medium">{video.title}</p>
-                              <p className="text-xs text-slate-500 mt-1">Today</p>
+                              <p className="text-xs text-slate-500 mt-1">{new Date(video.uploaded_at).toLocaleString()}</p>
                             </div>
                             <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
-                              Today
+                              {video.video_type === 'vimeo' ? 'Vimeo' : 'Upload'}
                             </span>
                           </div>
                           <p className="text-sm text-slate-600 mb-4 line-clamp-3">{video.description}</p>
@@ -757,14 +987,14 @@ export default function DashboardPage() {
                             {video.video_type === 'vimeo' ? (
                               <iframe
                                 src={video.video_url}
-                                width="300"
+                                width="100%"
                                 height="200"
                                 allow="autoplay; fullscreen"
-                                className="h-52 w-full"
-                                title={`Vimeo video shared by ${video.user_name}`}
+                                className="aspect-video w-full"
+                                title={`Learning video by ${video.user_name}`}
                               />
                             ) : (
-                              <video controls className="h-52 w-full bg-black">
+                              <video controls className="h-32 w-full bg-black">
                                 <source src={video.video_url} type="video/mp4" />
                                 Your browser does not support the video tag.
                               </video>
@@ -774,8 +1004,12 @@ export default function DashboardPage() {
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-600">
-                      No learning videos uploaded today yet
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+                      <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      <h4 className="text-sm font-semibold text-slate-900 mb-1">No videos today</h4>
+                      <p className="text-xs text-slate-500">Check back later for today's learning updates</p>
                     </div>
                   )}
                 </section>

@@ -25,3 +25,21 @@ class ChatMessageResponse(BaseModel):
 
 class ChatClearRequest(BaseModel):
     pass
+
+
+class AILearningAssistantRequest(BaseModel):
+    prompt: str = Field(..., description="The prompt to send to the AI assistant")
+
+
+class AILearningAssistantResponse(BaseModel):
+    response: str = Field(..., description="AI response to the learning assistant prompt")
+
+
+class CourseAIChatRequest(BaseModel):
+    question: str = Field(..., description="User's question about the course")
+    course_content: str = Field(..., description="The course content to base answers on")
+    course_title: str = Field(default="", description="The course title for context")
+
+
+class CourseAIChatResponse(BaseModel):
+    response: str = Field(..., description="AI response to the course question")

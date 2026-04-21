@@ -29,17 +29,17 @@ router = APIRouter()
 # WebSocket connection manager
 class ConnectionManager:
     def __init__(self):
-        # class_id -> list of (websocket, user_type)
-        self.active_connections: dict[int, list[tuple[WebSocket, str]]] = defaultdict(list)
+        # class_id -> list of (websocket, user_type, user_name)
+        self.active_connections: dict[int, list[tuple[WebSocket, str, str]]] = defaultdict(list)
 
-    async def connect(self, websocket: WebSocket, class_id: int, user_type: str):
+    async def connect(self, websocket: WebSocket, class_id: int, user_type: str, user_name: str = ''):
         await websocket.accept()
-        self.active_connections[class_id].append((websocket, user_type))
+        self.active_connections[class_id].append((websocket, user_type, user_name))
 
     def disconnect(self, websocket: WebSocket, class_id: int):
         if class_id in self.active_connections:
             self.active_connections[class_id] = [
-                (ws, ut) for ws, ut in self.active_connections[class_id] if ws != websocket
+                (ws, ut, un) for ws, ut, un in self.active_connections[class_id] if ws != websocket
             ]
             if not self.active_connections[class_id]:
                 del self.active_connections[class_id]
@@ -47,13 +47,32 @@ class ConnectionManager:
     async def broadcast_to_students(self, class_id: int, message: dict):
         """Broadcast message to all students in the class"""
         if class_id in self.active_connections:
-            for websocket, user_type in self.active_connections[class_id]:
+            for websocket, user_type, _ in list(self.active_connections[class_id]):
                 if user_type == "student":
                     try:
                         await websocket.send_json(message)
                     except Exception:
                         # Remove broken connections
                         self.disconnect(websocket, class_id)
+
+    async def broadcast_student_list(self, class_id: int):
+        """Send the current connected student list to all instructors."""
+        if class_id not in self.active_connections:
+            return
+
+        student_names = [user_name for _, user_type, user_name in self.active_connections[class_id] if user_type == "student"]
+        message = {
+            "type": "student_list",
+            "students": student_names,
+            "count": len(student_names),
+        }
+
+        for websocket, user_type, _ in list(self.active_connections[class_id]):
+            if user_type == "instructor":
+                try:
+                    await websocket.send_json(message)
+                except Exception:
+                    self.disconnect(websocket, class_id)
 
 manager = ConnectionManager()
 
@@ -100,9 +119,11 @@ async def live_class_websocket(
 
         # Determine user type
         user_type = "instructor" if live_class.instructor_id == current_user.id else "student"
+        user_name = current_user.full_name or current_user.email or "Unknown Student"
 
-        # Connect to WebSocket
-        await manager.connect(websocket, class_id, user_type)
+        # Connect to WebSocket and notify instructors of student join/leave
+        await manager.connect(websocket, class_id, user_type, user_name)
+        await manager.broadcast_student_list(class_id)
 
         try:
             while True:
@@ -120,6 +141,7 @@ async def live_class_websocket(
 
         except WebSocketDisconnect:
             manager.disconnect(websocket, class_id)
+            await manager.broadcast_student_list(class_id)
 
     except Exception as e:
         print(f"WebSocket error: {e}")

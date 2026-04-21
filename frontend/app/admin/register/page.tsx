@@ -17,6 +17,7 @@ export default function AdminRegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleOrganizationNameChange = (name: string) => {
@@ -169,12 +170,21 @@ export default function AdminRegisterPage() {
             {/* Confirm */}
             <div>
               <label htmlFor="admin-confirm" className="mb-2 block text-sm font-medium text-slate-300">Confirm password</label>
-              <input
-                id="admin-confirm" type="password" required autoComplete="new-password"
-                value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition focus:border-indigo-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-500/30"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="admin-confirm" type={showConfirmPassword ? 'text' : 'password'} required autoComplete="new-password"
+                  value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3 pr-12 text-sm text-white placeholder-slate-500 outline-none transition focus:border-indigo-500 focus:bg-white/[0.08] focus:ring-2 focus:ring-indigo-500/30"
+                  placeholder="••••••••"
+                />
+                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300" tabIndex={-1}>
+                  {showConfirmPassword ? (
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 

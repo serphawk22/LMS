@@ -10,9 +10,12 @@ export default function InstructorRegisterPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [organizationName, setOrganizationName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const formatErrorMessage = (errorResponse: unknown) => {
     if (typeof errorResponse === 'string') {
@@ -47,6 +50,36 @@ export default function InstructorRegisterPage() {
     event.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!fullName.trim()) {
+      setError('Please enter your full name.');
+      setLoading(false);
+      return;
+    }
+
+    if (!email.trim()) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter a password.');
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setLoading(false);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
 
     if (!organizationName.trim()) {
       setError('Please enter an organization name (e.g. "My School") to identify your organization.');
@@ -133,15 +166,61 @@ export default function InstructorRegisterPage() {
                 <label htmlFor="password" className="block text-sm font-semibold text-slate-700">
                   Password
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  required
-                  className="input-modern"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    required
+                    className="input-modern pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Must be at least 8 characters long
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-700">
+                  Confirm password
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
+                    required
+                    className="input-modern pr-10"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="space-y-2">

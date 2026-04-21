@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function HomePage() {
   const [showRoleModal, setShowRoleModal] = useState(false);
@@ -26,28 +27,29 @@ export default function HomePage() {
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden">
         {/* Gradient circles */}
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000" />
+        <div className="absolute top-0 -left-4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob hero-glow-1" />
+        <div className="absolute top-0 -right-4 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000 hero-glow-2" />
+        <div className="absolute -bottom-8 left-20 w-96 h-96 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000 hero-glow-3" />
       </div>
 
       {/* Navigation */}
-      <nav className="fixed top-0 w-full z-40 border-b border-white/10 bg-white/5 backdrop-blur-md">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:shadow-lg transition-all duration-300 transform group-hover:scale-105">
+      <nav className="fixed top-0 w-full z-40 border-b backdrop-blur-md hero-nav">
+        <div className="h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <div className="w-full max-w-7xl mx-auto 2xl:px-0 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3 flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-[var(--primary-color)] flex items-center justify-center text-white font-bold text-xl shadow-lg">
                 L
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-lg sm:text-xl font-bold text-[var(--text-color)] hidden sm:inline">
                 LMS Platform
               </span>
             </Link>
 
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <button
                 onClick={() => setShowRoleModal(true)}
-                className="relative w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-110 cursor-pointer"
+                className="relative w-10 h-10 rounded-full bg-[var(--secondary-color)] flex items-center justify-center text-white hover:shadow-lg hover:shadow-[var(--secondary-color)]/50 transition-all duration-300 transform hover:scale-110 cursor-pointer flex-shrink-0"
                 title="User menu"
               >
                 <svg
@@ -66,27 +68,27 @@ export default function HomePage() {
       {/* Role Selection Modal */}
       {showRoleModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl p-8">
+          <div className="w-full max-w-md rounded-2xl bg-[var(--card-color)] border border-[var(--border-color)] shadow-2xl p-8">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-900">Select Your Role</h2>
-              <p className="text-slate-600 mt-2">Choose how you want to access the LMS</p>
+                <h2 className="text-2xl font-bold text-[var(--text-color)]">Select Your Role</h2>
+                <p className="text-[var(--muted-color)] mt-2">Choose how you want to access the LMS</p>
             </div>
 
             <div className="space-y-4">
               {/* Student Option */}
               <button
                 onClick={() => handleRoleSelect('student')}
-                className="w-full p-4 border-2 border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all duration-200 text-left group"
+                className="w-full p-4 border-2 rounded-xl border-[var(--border-color)] hover:border-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-lg bg-[var(--primary-color)]/10 flex items-center justify-center text-[var(--primary-color)] group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.998 2 17s4.5 10.747 10 10.747c5.5 0 10-4.998 10-10.747S17.5 6.253 12 6.253z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">Student</h3>
-                    <p className="text-sm text-slate-600">Learn and take courses</p>
+                    <h3 className="font-semibold text-[var(--text-color)]">Student</h3>
+                    <p className="text-sm text-[var(--muted-color)]">Learn and take courses</p>
                   </div>
                 </div>
               </button>
@@ -94,17 +96,17 @@ export default function HomePage() {
               {/* Instructor Option */}
               <button
                 onClick={() => handleRoleSelect('instructor')}
-                className="w-full p-4 border-2 border-slate-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 text-left group"
+                className="w-full p-4 border-2 rounded-xl border-[var(--border-color)] hover:border-[var(--secondary-color)] hover:bg-[var(--secondary-color)]/10 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-lg bg-[var(--secondary-color)]/10 flex items-center justify-center text-[var(--secondary-color)] group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.581m0 0H9m0 0h5.581m0 0a2.5 2.5 0 110-5h.581m-.581 5a2.5 2.5 0 110-5h.581m0 0H9" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">Instructor</h3>
-                    <p className="text-sm text-slate-600">Create and teach courses</p>
+                    <h3 className="font-semibold text-[var(--text-color)]">Instructor</h3>
+                    <p className="text-sm text-[var(--muted-color)]">Create and teach courses</p>
                   </div>
                 </div>
               </button>
@@ -112,42 +114,42 @@ export default function HomePage() {
               {/* Admin Option */}
               <button
                 onClick={() => handleRoleSelect('admin')}
-                className="w-full p-4 border-2 border-slate-200 rounded-xl hover:border-indigo-500 hover:bg-indigo-50 transition-all duration-200 text-left group"
+                className="w-full p-4 border-2 rounded-xl border-[var(--border-color)] hover:border-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-100 to-indigo-200 rounded-lg flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-lg bg-[var(--primary-color)]/10 flex items-center justify-center text-[var(--primary-color)] group-hover:scale-110 transition-transform">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">Administrator</h3>
-                    <p className="text-sm text-slate-600">Manage platform and users</p>
+                    <h3 className="font-semibold text-[var(--text-color)]">Administrator</h3>
+                    <p className="text-sm text-[var(--muted-color)]">Manage platform and users</p>
                   </div>
                 </div>
               </button>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-200">
-              <p className="text-center text-sm text-slate-600 mb-4">
+            <div className="mt-8 pt-6 border-t border-[var(--border-color)]">
+              <p className="text-center text-sm text-[var(--muted-color)] mb-4">
                 Don't have an account? Create one below:
               </p>
               <div className="flex gap-3">
                 <Link
                   href="/register"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-200 text-center"
+                  className="flex-1 px-4 py-2 bg-[var(--primary-color)] text-white text-sm font-semibold rounded-lg hover:brightness-95 transition-all duration-200 text-center"
                 >
                   Student
                 </Link>
                 <Link
                   href="/instructor/register"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-200 text-center"
+                  className="flex-1 px-4 py-2 bg-[var(--secondary-color)] text-white text-sm font-semibold rounded-lg hover:brightness-95 transition-all duration-200 text-center"
                 >
                   Instructor
                 </Link>
                 <Link
                   href="/admin/register"
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white text-sm font-semibold rounded-lg hover:shadow-lg transition-all duration-200 text-center"
+                  className="flex-1 px-4 py-2 bg-[var(--primary-color)] text-white text-sm font-semibold rounded-lg hover:brightness-95 transition-all duration-200 text-center"
                 >
                   Admin
                 </Link>
@@ -156,7 +158,7 @@ export default function HomePage() {
 
             <button
               onClick={() => setShowRoleModal(false)}
-              className="w-full mt-4 py-2 text-slate-600 hover:text-slate-900 transition-colors text-sm"
+              className="w-full mt-4 py-2 text-[var(--muted-color)] hover:text-[var(--text-color)] transition-colors text-sm"
             >
               Close
             </button>
@@ -165,35 +167,35 @@ export default function HomePage() {
       )}
 
       {/* Main Content */}
-      <main className="relative min-h-screen flex items-center justify-center pt-16">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left - Text Content */}
-            <div className="space-y-8 animate-slide-up">
+      <main className="relative min-h-screen flex items-center justify-center pt-20 pb-16">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 xl:gap-8 items-center">
+            {/* Left - Text Content (7 cols) */}
+            <div className="lg:col-span-6 space-y-6 sm:space-y-8 animate-slide-up">
               <div className="space-y-4">
                 <div className="inline-block">
-                  <span className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-transparent bg-clip-text text-sm font-semibold">
+                  <span className="px-4 py-2 rounded-full bg-[var(--primary-color)]/10 text-[var(--primary-color)] text-xs sm:text-sm font-semibold">
                     Welcome to Modern Learning
                   </span>
                 </div>
 
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-bold leading-tight text-slate-900">
+                <h1 className="text-4xl sm:text-5xl md:text-5xl lg:text-6xl xl:text-6xl font-display font-bold leading-tight text-[var(--text-color)]">
                   Learn, Teach, and{' '}
-                  <span className="text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+                  <span className="text-[var(--primary-color)]">
                     Grow Together
                   </span>
                 </h1>
 
-                <p className="text-lg sm:text-xl text-slate-600 max-w-xl leading-relaxed">
+                <p className="text-base sm:text-lg md:text-lg lg:text-lg xl:text-xl text-[var(--muted-color)] max-w-2xl leading-relaxed">
                   A modern, professional learning management platform designed for organizations, instructors, and learners. Start your educational journey today.
                 </p>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 pt-2">
                 <button
                   onClick={() => setShowRoleModal(true)}
-                  className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105 group"
+                  className="inline-flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 bg-[var(--primary-color)] text-white font-semibold rounded-xl hover:brightness-95 transition-all duration-300 transform hover:scale-105 group whitespace-nowrap w-full sm:w-auto"
                 >
                   Get Started
                   <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,7 +205,7 @@ export default function HomePage() {
 
                 <button
                   onClick={() => setShowRoleModal(true)}
-                  className="inline-flex items-center justify-center px-8 py-4 border-2 border-slate-300 text-slate-700 font-semibold rounded-xl hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50/50 transition-all duration-300 group"
+                  className="inline-flex items-center justify-center px-8 sm:px-10 py-3 sm:py-4 border-2 rounded-xl border-[var(--border-color)] text-[var(--text-color)] font-semibold hover:border-[var(--primary-color)] hover:text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 transition-all duration-300 group whitespace-nowrap w-full sm:w-auto"
                 >
                   Sign In
                   <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -213,30 +215,30 @@ export default function HomePage() {
               </div>
 
               {/* Features List */}
-              <div className="grid grid-cols-2 gap-4 pt-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4 sm:pt-6">
                 {[
                   { icon: '📚', label: 'Courses' },
                   { icon: '👥', label: 'Collaboration' },
                   { icon: '📊', label: 'Analytics' },
                   { icon: '🎖️', label: 'Certificates' },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 text-slate-700">
-                    <span className="text-2xl">{item.icon}</span>
-                    <span className="font-medium">{item.label}</span>
+                  <div key={idx} className="flex items-center gap-3 text-[var(--text-color)]">
+                    <span className="text-2xl sm:text-3xl flex-shrink-0 text-[var(--secondary-color)]">{item.icon}</span>
+                    <span className="font-medium text-sm sm:text-base">{item.label}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Right - Animated Illustration */}
-            <div className="relative h-96 lg:h-auto flex items-center justify-center">
-              <div className="relative w-80 h-96">
+            {/* Right - Animated Illustration (5 cols) */}
+            <div className="lg:col-span-6 relative w-full h-80 sm:h-96 lg:h-full flex items-center justify-center order-first lg:order-last mt-8 lg:mt-0 lg:min-h-screen">
+              <div className="relative w-72 sm:w-80 md:w-96 lg:w-full lg:max-w-md h-80 sm:h-96 lg:h-96 xl:h-[450px]">
                 {/* Book pages flip animation */}
                 <div className="absolute inset-0 perspective">
                   {[...Array(3)].map((_, i) => (
                     <div
                       key={i}
-                      className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl shadow-2xl"
+                      className="absolute inset-0 rounded-xl shadow-2xl hero-panel"
                       style={{
                         animation: `flipBook ${2 + i * 0.5}s ease-in-out infinite`,
                         animationDelay: `${i * 0.3}s`,
@@ -244,7 +246,7 @@ export default function HomePage() {
                       }}
                     >
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-white text-center">
+                        <div className="text-[var(--text-color)] text-center">
                           <p className="text-4xl mb-2">
                             {['📖', '✏️', '🎓'][i]}
                           </p>
@@ -258,8 +260,8 @@ export default function HomePage() {
                 </div>
 
                 {/* Floating elements */}
-                <div className="absolute -top-6 -right-6 w-20 h-20 bg-yellow-300 rounded-full opacity-30 animate-float" />
-                <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-pink-300 rounded-full opacity-20 animate-float" style={{ animationDelay: '1s' }} />
+                <div className="absolute -top-8 -right-8 w-24 sm:w-32 h-24 sm:h-32 rounded-full opacity-30 animate-float hero-glow-1" />
+                <div className="absolute -bottom-8 -left-8 w-28 sm:w-36 h-28 sm:h-36 rounded-full opacity-20 animate-float hero-glow-2" style={{ animationDelay: '1s' }} />
               </div>
             </div>
           </div>
@@ -267,18 +269,18 @@ export default function HomePage() {
       </main>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 relative">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+      <section className="py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-8 relative">
+        <div className="w-full max-w-7xl mx-auto 2xl:px-0">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[var(--text-color)] mb-4">
               Why Choose Our LMS?
             </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-[var(--muted-color)] max-w-2xl mx-auto">
               Everything you need to create, manage, and deliver world-class learning experiences
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
                 icon: '🎯',
@@ -298,13 +300,13 @@ export default function HomePage() {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="modern-card p-8 text-center hover:scale-105 transition-transform duration-300"
+                className="modern-card p-6 sm:p-8 text-center hover:scale-105 transition-transform duration-300"
               >
-                <p className="text-5xl mb-4">{item.icon}</p>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                <p className="text-4xl sm:text-5xl mb-4">{item.icon}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-[var(--text-color)] mb-2">
                   {item.title}
                 </h3>
-                <p className="text-slate-600">
+                <p className="text-sm sm:text-base text-[var(--muted-color)]">
                   {item.description}
                 </p>
               </div>
@@ -314,9 +316,9 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+      <footer className="border-t border-[var(--border-color)] bg-[var(--card-color)]/80 py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-7xl mx-auto 2xl:px-0">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8">
             {[
               { title: 'Product', links: ['Features', 'Pricing', 'Security'] },
               { title: 'Company', links: ['About', 'Blog', 'Careers'] },
@@ -324,11 +326,11 @@ export default function HomePage() {
               { title: 'Legal', links: ['Privacy', 'Terms', 'Contact'] },
             ].map((col, idx) => (
               <div key={idx}>
-                <h4 className="font-semibold text-slate-900 mb-4">{col.title}</h4>
-                <ul className="space-y-2">
+                <h4 className="font-semibold text-[var(--text-color)] mb-3 sm:mb-4 text-sm sm:text-base">{col.title}</h4>
+                <ul className="space-y-2 sm:space-y-3">
                   {col.links.map((link, lidx) => (
                     <li key={lidx}>
-                      <a href="#" className="text-slate-600 hover:text-blue-600 transition-colors">
+                      <a href="#" className="text-xs sm:text-sm text-[var(--muted-color)] hover:text-[var(--primary-color)] transition-colors">
                         {link}
                       </a>
                     </li>
@@ -338,16 +340,16 @@ export default function HomePage() {
             ))}
           </div>
 
-          <div className="border-t border-slate-200 pt-8 flex flex-col sm:flex-row items-center justify-between">
-            <p className="text-slate-600 text-sm">
+          <div className="border-t border-[var(--border-color)] pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-[var(--muted-color)] text-xs sm:text-sm">
               © 2026 LMS Platform. All rights reserved.
             </p>
-            <div className="flex gap-4 mt-4 sm:mt-0">
+            <div className="flex gap-4 sm:gap-6">
               {['Twitter', 'GitHub', 'LinkedIn'].map((social, idx) => (
                 <a
                   key={idx}
                   href="#"
-                  className="text-slate-600 hover:text-blue-600 transition-colors text-sm font-medium"
+                  className="text-[var(--muted-color)] hover:text-[var(--primary-color)] transition-colors text-xs sm:text-sm font-medium"
                 >
                   {social}
                 </a>

@@ -6,9 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { fetchCourse, fetchCourseStructure, fetchStudentCourseScores, fetchStudentCourseDashboard } from '@/services/courses';
 import { enrollInCourse, unenrollFromCourse, getEnrollment } from '@/services/instructor';
 import { fetchCourseQuizzes } from '@/services/quiz';
-import { AILearningAssistant } from '@/components/AILearningAssistant';
 import { listLiveClasses, LiveClass } from '@/services/live_classes';
-import CourseChatBot from '@/components/CourseChatBot';
 import type { CourseDetails, CourseStructure, StudentCourseScores, StudentCourseDashboard } from '@/types/course';
 import type { Quiz } from '@/types/quiz';
 import type { EnrollmentData } from '@/services/instructor';
@@ -46,48 +44,6 @@ export default function CourseDetailsPage() {
     course?.instructor_name ||
     course?.instructors?.[0]?.full_name ||
     'Staff';
-
-  // Collect all course content for AI chatbot context
-  const getCourseContent = () => {
-    let content = '';
-
-    // Add course description
-    if (course?.description) {
-      content += `Course Description: ${course.description}\n\n`;
-    }
-
-    // Add course objectives
-    if (course?.objectives?.length) {
-      content += `Course Objectives:\n${course.objectives.map(obj => `- ${obj}`).join('\n')}\n\n`;
-    }
-
-    // Add course requirements
-    if (course?.requirements?.length) {
-      content += `Course Requirements:\n${course.requirements.map(req => `- ${req}`).join('\n')}\n\n`;
-    }
-
-    // Add lesson content from structure
-    if (structure?.modules) {
-      content += 'Course Content:\n\n';
-      structure.modules.forEach((module, moduleIndex) => {
-        content += `Module ${moduleIndex + 1}: ${module.title}\n`;
-        if (module.description) {
-          content += `${module.description}\n`;
-        }
-        content += '\n';
-
-        module.lessons.forEach((lesson, lessonIndex) => {
-          content += `Lesson ${lessonIndex + 1}: ${lesson.title}\n`;
-          if (lesson.content) {
-            content += `${lesson.content}\n`;
-          }
-          content += '\n';
-        });
-      });
-    }
-
-    return content.trim();
-  };
 
   useEffect(() => {
     if (!courseId) {
@@ -291,8 +247,6 @@ export default function CourseDetailsPage() {
                         <p className="text-slate-600 text-sm leading-relaxed">{course.description}</p>
                       </div>
                     )}
-
-                    <AILearningAssistant />
                   </div>
 
                   <aside className="space-y-6">
@@ -860,14 +814,6 @@ export default function CourseDetailsPage() {
           </>
         ) : null}
       </div>
-
-      {/* Floating Course AI Chatbot */}
-      {course && (
-        <CourseChatBot
-          courseContent={getCourseContent()}
-          courseTitle={course.title}
-        />
-      )}
     </main>
   );
 }

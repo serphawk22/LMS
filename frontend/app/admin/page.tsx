@@ -49,6 +49,10 @@ export default function AdminPage() {
             <h3 className="text-lg font-semibold">Student activities</h3>
             <p className="mt-2 text-sm text-slate-600">Review learner engagement, progress, and activity logs.</p>
           </Link>
+          <Link href="/admin/daily-videos" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <h3 className="text-lg font-semibold">Daily learning videos</h3>
+            <p className="mt-2 text-sm text-slate-600">View all student video uploads and Vimeo submissions.</p>
+          </Link>
           <Link href="/admin/instructor-activities" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
             <h3 className="text-lg font-semibold">Instructor activities</h3>
             <p className="mt-2 text-sm text-slate-600">Monitor instructor workflows, assignments, and support actions.</p>

@@ -183,11 +183,26 @@ from .chatbot import (
     ChatMessageRequest,
     ChatMessageResponse,
     ChatClearRequest,
+    AILearningAssistantRequest,
+    AILearningAssistantResponse,
+    CourseAIChatRequest,
+    CourseAIChatResponse,
+)
+from .support import (
+    AIHelpRequest,
+    AIHelpResponse,
+    RaiseTicketRequest,
+    TicketResponse,
+    RaiseTicketResponse,
+    TicketsListResponse,
 )
 from .daily_learning import (
     DailyLearningVideoBase,
     DailyLearningVideoCreate,
     DailyLearningVideoRead,
+)
+from .calendar import (
+    CalendarEventRead,
 )
 
 __all__ = [
@@ -355,7 +370,18 @@ __all__ = [
     "ChatMessageRequest",
     "ChatMessageResponse",
     "ChatClearRequest",
+    "AILearningAssistantRequest",
+    "AILearningAssistantResponse",
+    "CourseAIChatRequest",
+    "CourseAIChatResponse",
+    "AIHelpRequest",
+    "AIHelpResponse",
+    "RaiseTicketRequest",
+    "TicketResponse",
+    "RaiseTicketResponse",
+    "TicketsListResponse",
     "DailyLearningVideoBase",
     "DailyLearningVideoCreate",
     "DailyLearningVideoRead",
+    "CalendarEventRead",
 ]

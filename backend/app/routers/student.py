@@ -68,8 +68,9 @@ def get_student_course_scores(
         submission = db.query(AssignmentSubmission).filter(
             AssignmentSubmission.assignment_id == assignment.id,
             AssignmentSubmission.user_id == current_user.id,
-            AssignmentSubmission.organization_id == organization.id
-        ).first()
+            AssignmentSubmission.organization_id == organization.id,
+            AssignmentSubmission.is_deleted == False,
+        ).order_by(AssignmentSubmission.submitted_at.desc()).first()
         if submission:
             assignment_submissions[assignment.id] = submission
 
@@ -88,20 +89,23 @@ def get_student_course_scores(
     for assignment in assignments:
         submission = assignment_submissions.get(assignment.id)
         submission_reviewed = False
-        if submission:
-            submission_reviewed = bool(submission.reviewed)
-            if not submission_reviewed:
-                status_value = submission.status.value if hasattr(submission.status, "value") else submission.status
-                submission_reviewed = status_value == "graded"
+        submission_status = 'pending'
+        grade = None
+        feedback = None
 
-        grade = submission.grade if submission and submission_reviewed else None
-        submission_status = 'graded' if submission and submission_reviewed else 'pending'
+        if submission:
+            status_value = submission.status.value if hasattr(submission.status, "value") else submission.status
+            submission_reviewed = bool(submission.reviewed) or status_value == "graded"
+            submission_status = status_value if status_value else 'pending'
+            grade = submission.grade if submission_reviewed else None
+            feedback = submission.feedback
+
         assignments_response.append({
             "title": assignment.title,
             "score": grade,
             "total": assignment.max_score,
             "reviewed": submission_reviewed,
-            "feedback": submission.feedback if submission else None,
+            "feedback": feedback,
             "status": submission_status
         })
 

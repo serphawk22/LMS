@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, type MutableRefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import { getLiveClass, LiveClass } from '@/services/live_classes';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,6 +28,7 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
   // WebSocket and streaming
   const [isConnected, setIsConnected] = useState(false);
   const [streamChunks, setStreamChunks] = useState<Blob[]>([]);
+  const [studentsConnected, setStudentsConnected] = useState<string[]>([]);
   const websocketRef = useRef<WebSocket | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
@@ -37,6 +38,13 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
   const screenStreamRef = useRef<MediaStream | null>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
   const combinedStreamRef = useRef<MediaStream | null>(null);
+  const screenPreviewRef = useRef<HTMLVideoElement | null>(null);
+  const cameraPreviewRef = useRef<HTMLVideoElement | null>(null);
+  const compositionCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const compositionAnimationRef = useRef<number | null>(null);
+
+  const isInstructor = role === 'instructor' || role === 'organization_admin' || role === 'super_admin' || role === 'admin';
+  const isStudent = role === 'student';
 
   useEffect(() => {
     fetchLiveClass();
@@ -104,6 +112,8 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
       if (data.type === 'video_chunk') {
         // Handle incoming video chunk for students
         handleVideoChunk(data.data);
+      } else if (data.type === 'student_list') {
+        setStudentsConnected(Array.isArray(data.students) ? data.students : []);
       }
     };
 
@@ -124,6 +134,60 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
       websocketRef.current = null;
     }
     setIsConnected(false);
+  };
+
+  const createHiddenVideoElement = (ref: MutableRefObject<HTMLVideoElement | null>) => {
+    if (typeof window === 'undefined') return null;
+    if (!ref.current) {
+      const video = document.createElement('video');
+      video.style.display = 'none';
+      video.autoplay = true;
+      video.muted = true;
+      video.playsInline = true;
+      document.body.appendChild(video);
+      ref.current = video;
+    }
+    return ref.current;
+  };
+
+  const destroyHiddenVideoElement = (ref: MutableRefObject<HTMLVideoElement | null>) => {
+    if (ref.current) {
+      ref.current.pause();
+      if (ref.current.parentNode) {
+        ref.current.parentNode.removeChild(ref.current);
+      }
+      ref.current = null;
+    }
+  };
+
+  const createHiddenCanvas = () => {
+    if (typeof window === 'undefined') return null;
+    if (!compositionCanvasRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.style.display = 'none';
+      document.body.appendChild(canvas);
+      compositionCanvasRef.current = canvas;
+    }
+    return compositionCanvasRef.current;
+  };
+
+  const destroyHiddenCanvas = () => {
+    if (compositionCanvasRef.current) {
+      if (compositionCanvasRef.current.parentNode) {
+        compositionCanvasRef.current.parentNode.removeChild(compositionCanvasRef.current);
+      }
+      compositionCanvasRef.current = null;
+    }
+  };
+
+  const cleanupCompositionElements = () => {
+    if (compositionAnimationRef.current !== null) {
+      cancelAnimationFrame(compositionAnimationRef.current);
+      compositionAnimationRef.current = null;
+    }
+    destroyHiddenVideoElement(screenPreviewRef);
+    destroyHiddenVideoElement(cameraPreviewRef);
+    destroyHiddenCanvas();
   };
 
   const handleVideoChunk = (chunkData: string) => {
@@ -214,30 +278,84 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
   };
 
   const updateCombinedStream = () => {
-    // Stop previous combined stream
+    // Stop previous combined stream capture
     if (combinedStreamRef.current) {
-      combinedStreamRef.current.getTracks().forEach(track => track.stop());
+      combinedStreamRef.current.getTracks().forEach((track) => track.stop());
+      combinedStreamRef.current = null;
     }
 
-    const streams: MediaStream[] = [];
-    if (screenStreamRef.current) streams.push(screenStreamRef.current);
-    if (cameraStreamRef.current) streams.push(cameraStreamRef.current);
+    if (compositionAnimationRef.current !== null) {
+      cancelAnimationFrame(compositionAnimationRef.current);
+      compositionAnimationRef.current = null;
+    }
 
-    if (streams.length === 0) {
-      // No streams active
+    const screenStream = screenStreamRef.current;
+    const cameraStream = cameraStreamRef.current;
+
+    if (!screenStream && !cameraStream) {
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
+      cleanupCompositionElements();
       return;
     }
 
-    // For instructors, show their own stream
-    // For students, they'll receive chunks via WebSocket
-    const displayStream = streams[0];
-    combinedStreamRef.current = displayStream;
+    if (screenStream && cameraStream) {
+      const screenVideo = createHiddenVideoElement(screenPreviewRef);
+      const cameraVideo = createHiddenVideoElement(cameraPreviewRef);
+      const canvas = createHiddenCanvas();
+      if (!screenVideo || !cameraVideo || !canvas) return;
 
-    if (isInstructor && videoRef.current) {
-      videoRef.current.srcObject = displayStream;
+      screenVideo.srcObject = screenStream;
+      cameraVideo.srcObject = cameraStream;
+      screenVideo.play().catch(() => {});
+      cameraVideo.play().catch(() => {});
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      canvas.width = 1280;
+      canvas.height = 720;
+
+      const renderFrame = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (screenVideo.readyState >= 2) {
+          ctx.drawImage(screenVideo, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (cameraVideo.readyState >= 2) {
+          const overlayWidth = canvas.width / 4;
+          const overlayHeight = canvas.height / 4;
+          const overlayX = canvas.width - overlayWidth - 20;
+          const overlayY = canvas.height - overlayHeight - 20;
+          ctx.drawImage(cameraVideo, overlayX, overlayY, overlayWidth, overlayHeight);
+          ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+          ctx.lineWidth = 4;
+          ctx.strokeRect(overlayX - 2, overlayY - 2, overlayWidth + 4, overlayHeight + 4);
+        }
+
+        compositionAnimationRef.current = requestAnimationFrame(renderFrame);
+      };
+
+      renderFrame();
+
+      const canvasStream = canvas.captureStream(30);
+      const audioTrack = cameraStream.getAudioTracks()[0];
+      if (audioTrack) {
+        canvasStream.addTrack(audioTrack);
+      }
+
+      combinedStreamRef.current = canvasStream;
+    } else {
+      combinedStreamRef.current = screenStream || cameraStream || null;
+      cleanupCompositionElements();
+    }
+
+    if (isInstructor && combinedStreamRef.current && videoRef.current) {
+      videoRef.current.srcObject = combinedStreamRef.current;
     }
   };
 
@@ -265,13 +383,34 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
       mediaRecorderRef.current.stop();
       mediaRecorderRef.current = null;
     }
+
+    cleanupCompositionElements();
+  };
+
+  const downloadRecording = () => {
+    const chunks = recordedChunksRef.current;
+    if (!chunks.length) return;
+
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `live-class-${params.id}-${Date.now()}.webm`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const startRecordingAndStreaming = () => {
     if (!combinedStreamRef.current) return;
 
+    const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+      ? 'video/webm;codecs=vp9'
+      : 'video/webm';
+
     const mediaRecorder = new MediaRecorder(combinedStreamRef.current, {
-      mimeType: 'video/webm;codecs=vp9',
+      mimeType,
     });
 
     recordedChunksRef.current = [];
@@ -296,6 +435,10 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
       }
     };
 
+    mediaRecorder.onstop = () => {
+      downloadRecording();
+    };
+
     mediaRecorder.start(1000); // Collect data every second
     mediaRecorderRef.current = mediaRecorder;
   };
@@ -307,9 +450,6 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
       disconnectWebSocket();
     };
   }, []);
-
-  const isInstructor = role === 'instructor' || role === 'organization_admin' || role === 'super_admin' || role === 'admin';
-  const isStudent = role === 'student';
 
   if (loading) {
     return (
@@ -481,6 +621,20 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
                   Status: {isScreenSharing && 'Screen Sharing'} {isCameraActive && '• Camera Active'} {isConnected && '• Connected'}
                   {!isConnected && '• Disconnected'}
                 </div>
+
+                {studentsConnected.length > 0 && (
+                  <div className="mt-4 bg-slate-900 rounded-lg p-4 border border-slate-700">
+                    <p className="text-sm text-slate-300 mb-2">Students in class ({studentsConnected.length})</p>
+                    <ul className="text-sm text-slate-100 space-y-1">
+                      {studentsConnected.map((student) => (
+                        <li key={student} className="flex items-center gap-2">
+                          <span className="h-2 w-2 rounded-full bg-green-400" />
+                          <span>{student}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : isStudent ? (
               // Student View - Show connection and stream status

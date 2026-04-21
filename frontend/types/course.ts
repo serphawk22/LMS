@@ -130,6 +130,7 @@ export interface CourseLesson {
   title: string;
   video_url?: string | null;
   description?: string | null;
+  duration_minutes?: number | null;
   content_payload?: LessonContentPayload | null;
 }
 

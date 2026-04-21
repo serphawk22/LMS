@@ -1811,6 +1811,34 @@ def get_daily_learning_videos_today(db: Session, user) -> List[dict[str, Any]]:
     ]
 
 
+def get_all_daily_learning_videos(db: Session, user) -> List[dict[str, Any]]:
+    """Get all daily learning videos for the user's organization."""
+    videos = (
+        db.query(DailyLearningVideo)
+        .join(User, DailyLearningVideo.user_id == User.id)
+        .filter(
+            DailyLearningVideo.organization_id == user.organization_id,
+            DailyLearningVideo.is_deleted == False,
+        )
+        .order_by(DailyLearningVideo.uploaded_at.desc())
+        .all()
+    )
+
+    return [
+        {
+            "id": video.id,
+            "user_id": video.user_id,
+            "user_name": video.user.full_name if video.user else "Unknown User",
+            "title": video.title,
+            "description": video.description,
+            "video_type": video.video_type,
+            "video_url": video.video_url,
+            "uploaded_at": video.uploaded_at,
+        }
+        for video in videos
+    ]
+
+
 def _get_vimeo_embed_url(vimeo_url: str) -> str:
     trimmed = vimeo_url.strip()
     patterns = [

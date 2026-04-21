@@ -56,6 +56,7 @@ from .lms_models import (
     QuizAttemptStatus,
     LeaderboardMetric,
 )
+from .ticket import Ticket
 
 __all__ = [
     "Assignment",
@@ -113,5 +114,6 @@ __all__ = [
     "AssignmentStatus",
     "QuizAttemptStatus",
     "LeaderboardMetric",
+    "Ticket",
 ]
 

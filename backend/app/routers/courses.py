@@ -591,7 +591,7 @@ def create_lesson(
     payload: schemas.LessonCreate,
     tenant_id: str = Depends(get_tenant),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_roles("instructor", "organization_admin", "super_admin", "admin")),
 ):
     print("Create lesson request received", {
         "tenant_id": tenant_id,
@@ -724,7 +724,10 @@ def get_course_structure(
     course_id: int,
     tenant_id: str = Depends(get_tenant),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
 ):
+    from app.services import enrollment as enrollment_service
+    
     organization = auth_service.get_organization_by_tenant(db, tenant_id)
     if not organization:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
@@ -732,6 +735,16 @@ def get_course_structure(
     course = course_service.get_course_by_id(db, course_id, organization.id)
     if not course:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found.")
+    
+    # Check if user is enrolled in the course (or is an instructor/admin)
+    is_instructor = (current_user.role_name or "").lower() in {"instructor", "organization_admin", "super_admin", "admin"}
+    if not is_instructor:
+        enrollment = enrollment_service.get_user_enrollment(db, current_user.id, course_id, organization.id)
+        if not enrollment:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You are not enrolled in this course.",
+            )
 
     modules = course_service.get_course_structure(db, organization.id, course.id)
     return schemas.CourseStructureRead(

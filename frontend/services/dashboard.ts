@@ -89,6 +89,11 @@ export async function fetchDailyLearningVideos(): Promise<DailyLearningVideo[]> 
   return response.data;
 }
 
+export async function fetchAdminDailyLearningVideos(): Promise<DailyLearningVideo[]> {
+  const response = await api.get('/dashboard/admin/daily-videos');
+  return response.data;
+}
+
 export async function uploadDailyLearningVideo(
   title: string,
   description: string,

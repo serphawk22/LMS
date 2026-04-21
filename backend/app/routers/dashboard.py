@@ -123,6 +123,21 @@ def get_admin_instructor_activity_summary(
     return dashboard_service.get_admin_instructor_activity_summary(db, current_user)
 
 
+@router.get("/admin/daily-videos", response_model=list[schemas.DailyLearningVideoRead])
+def get_admin_daily_learning_videos(
+    tenant_id: str = Depends(get_tenant),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin_user),
+):
+    organization = auth_service.get_organization_by_tenant(db, tenant_id)
+    if not organization:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
+    if current_user.organization_id != organization.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization mismatch.")
+
+    return dashboard_service.get_all_daily_learning_videos(db, current_user)
+
+
 @router.get("/admin/instructors/{instructor_id}", response_model=schemas.AdminInstructorActivityDetailRead)
 def get_admin_instructor_activity_details(
     instructor_id: int,

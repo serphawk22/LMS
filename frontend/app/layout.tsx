@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import ThemeProvider from '@/components/ThemeProvider';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export const metadata: Metadata = {
   title: 'LMS Platform - Learn, Teach, and Grow',
@@ -19,11 +21,29 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="theme-color" content="#0ea5e9" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const savedTheme = localStorage.getItem('theme');
+                  const theme = savedTheme === 'dark' ? 'dark' : 'light';
+                  document.documentElement.dataset.theme = theme;
+                  document.documentElement.style.colorScheme = theme;
+                } catch (error) {
+                  console.warn('Theme initialization failed', error);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
-      <body className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 text-slate-900">
-        <div className="min-h-screen flex flex-col">
-          {children}
-        </div>
+      <body className="min-h-screen">
+        <ThemeProvider>
+          <div className="min-h-screen flex flex-col">
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

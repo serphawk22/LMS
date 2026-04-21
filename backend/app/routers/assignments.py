@@ -63,6 +63,25 @@ def _get_submission_type(submission: AssignmentSubmission) -> str:
     return 'none'
 
 
+def _serialize_assignment_submission(submission: AssignmentSubmission, late: bool) -> schemas.AssignmentSubmissionRead:
+    return schemas.AssignmentSubmissionRead(
+        id=submission.id,
+        assignment_id=submission.assignment_id,
+        user_id=submission.user_id,
+        student_name=getattr(getattr(submission, 'user', None), 'full_name', None),
+        submission_type=_get_submission_type(submission),
+        submitted_at=submission.submitted_at,
+        content=submission.content,
+        attachments=submission.attachments,
+        grade=getattr(submission, 'grade', None),
+        feedback=getattr(submission, 'feedback', None),
+        status=getattr(submission, 'status', 'submitted'),
+        late=late,
+        graded_at=getattr(submission, 'graded_at', None),
+        graded_by=getattr(submission, 'graded_by', None),
+    )
+
+
 @router.get("/", response_model=List[schemas.AssignmentRead])
 def list_assignments(
     course_id: int | None = None,
@@ -338,22 +357,7 @@ async def submit_assignment(
     if assignment.due_date and submission.submitted_at > assignment.due_date:
         late = True
 
-    return schemas.AssignmentSubmissionRead(
-        id=submission.id,
-        assignment_id=submission.assignment_id,
-        user_id=submission.user_id,
-        student_name=getattr(getattr(submission, 'user', None), 'full_name', None),
-        submission_type=_get_submission_type(submission),
-        submitted_at=submission.submitted_at,
-        content=submission.content,
-        attachments=submission.attachments,
-        grade=submission.grade,
-        feedback=submission.feedback,
-        status=submission.status,
-        late=late,
-        graded_at=submission.graded_at,
-        graded_by=submission.graded_by,
-    )
+    return _serialize_assignment_submission(submission, late)
 
 
 @router.get("/submissions/{submission_id}/attachments/{filename}/download")
@@ -426,24 +430,7 @@ def list_assignment_submissions(
         late = False
         if assignment.due_date and submission.submitted_at > assignment.due_date:
             late = True
-        result.append(
-            schemas.AssignmentSubmissionRead(
-                id=submission.id,
-                assignment_id=submission.assignment_id,
-                user_id=submission.user_id,
-                student_name=getattr(submission.user, 'full_name', None),
-                submission_type=_get_submission_type(submission),
-                submitted_at=submission.submitted_at,
-                content=submission.content,
-                attachments=submission.attachments,
-                grade=submission.grade,
-                feedback=submission.feedback,
-                status=submission.status,
-                late=late,
-                graded_at=submission.graded_at,
-                graded_by=submission.graded_by,
-            )
-        )
+        result.append(_serialize_assignment_submission(submission, late))
     return result
 
 
@@ -472,22 +459,7 @@ def get_my_assignment_submission(
     if assignment.due_date and submission.submitted_at > assignment.due_date:
         late = True
 
-    return schemas.AssignmentSubmissionRead(
-        id=submission.id,
-        assignment_id=submission.assignment_id,
-        user_id=submission.user_id,
-        student_name=getattr(submission.user, 'full_name', None),
-        submission_type=_get_submission_type(submission),
-        submitted_at=submission.submitted_at,
-        content=submission.content,
-        attachments=submission.attachments,
-        grade=submission.grade,
-        feedback=submission.feedback,
-        status=submission.status,
-        late=late,
-        graded_at=submission.graded_at,
-        graded_by=submission.graded_by,
-    )
+    return _serialize_assignment_submission(submission, late)
 
 
 @router.post("/submissions/{submission_id}/grade", response_model=schemas.AssignmentSubmissionRead)

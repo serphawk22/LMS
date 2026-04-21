@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import api from '@/lib/api';
 import { saveAuthToken } from '@/lib/auth';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function OrganizationAdminLoginPage() {
   const router = useRouter();
@@ -49,7 +50,12 @@ export default function OrganizationAdminLoginPage() {
   };
 
   return (
-    <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 px-4 py-16">
+    <main className="flex min-h-[calc(100vh-64px)] items-center justify-center bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 px-4 py-16 relative">
+      {/* Theme Toggle */}
+      <div className="absolute top-8 right-8">
+        <ThemeToggle />
+      </div>
+      
       <div className="w-full max-w-md space-y-8">
 
         {/* branding */}

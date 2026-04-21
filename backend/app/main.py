@@ -9,7 +9,7 @@ from app.database import init_db
 from app.dependencies import get_current_active_user, get_db, get_tenant
 from app.middleware.role import RoleMiddleware
 from app.middleware.tenant import TenantMiddleware
-from app.routers import admin, auth, billing, certificates, courses, dashboard, files, organizations, quizzes, tenants, assignments, gamification, chatbot, transcription, student, announcements, live_classes, lessons
+from app.routers import admin, auth, billing, certificates, courses, dashboard, files, organizations, quizzes, tenants, assignments, gamification, chatbot, transcription, student, announcements, live_classes, lessons, support, calendar
 from app.services import auth as auth_service, dashboard as dashboard_service, organizations as organization_service
 
 app = FastAPI(
@@ -48,10 +48,12 @@ app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboar
 app.include_router(gamification.router, prefix="/api/v1/gamification", tags=["gamification"])
 app.include_router(billing.router, prefix="/api/v1/billing", tags=["billing"])
 app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["chatbot"])
+app.include_router(support.router, prefix="/api/v1/support", tags=["support"])
 app.include_router(transcription.router, tags=["transcription"])
 app.include_router(student.router, prefix="/api/v1/student", tags=["student"])
 app.include_router(announcements.router, prefix="/api/v1/announcements", tags=["announcements"])
 app.include_router(live_classes.router, prefix="/api/v1/live-classes", tags=["live-classes"])
+app.include_router(calendar.router, prefix="/api/v1/calendar", tags=["calendar"])
 
 # Mount uploads directory for serving static files
 uploads_dir = Path(__file__).resolve().parent.parent / "uploads"

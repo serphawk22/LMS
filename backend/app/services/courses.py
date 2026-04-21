@@ -545,6 +545,36 @@ def _validate_lesson_content_payload(content_type: LessonContentType, content_pa
     else:
         raise ValueError("content_payload must be a dictionary or a valid content payload object.")
 
+    # Validate required fields based on content type
+    if content_type == LessonContentType.youtube_embed:
+        if "youtube_id" not in payload_data or not payload_data["youtube_id"]:
+            raise ValueError("Invalid content_payload for lesson type 'youtube_embed'")
+    elif content_type == LessonContentType.vimeo_embed:
+        if "vimeo_id" not in payload_data or not payload_data["vimeo_id"]:
+            raise ValueError("Invalid content_payload for lesson type 'vimeo_embed'")
+    elif content_type == LessonContentType.text:
+        if "body" not in payload_data or not payload_data["body"]:
+            raise ValueError("Invalid content_payload for lesson type 'text'")
+    elif content_type == LessonContentType.html:
+        if "html" not in payload_data or not payload_data["html"]:
+            raise ValueError("Invalid content_payload for lesson type 'html'")
+    elif content_type in [
+        LessonContentType.video_upload,
+        LessonContentType.pdf,
+        LessonContentType.ppt,
+        LessonContentType.doc,
+        LessonContentType.audio,
+        LessonContentType.scorm,
+    ]:
+        if "file_url" not in payload_data and "package_url" not in payload_data:
+            raise ValueError(f"Invalid content_payload for lesson type '{content_type.value}'")
+    elif content_type in [LessonContentType.external_link, LessonContentType.live_link]:
+        if "url" not in payload_data or not payload_data["url"]:
+            raise ValueError(f"Invalid content_payload for lesson type '{content_type.value}'")
+    elif content_type == LessonContentType.iframe_embed:
+        if "iframe_url" not in payload_data or not payload_data["iframe_url"]:
+            raise ValueError("Invalid content_payload for lesson type 'iframe_embed'")
+
     # Preserve all fields including extra ones like resources/materials
     return payload_data
 
