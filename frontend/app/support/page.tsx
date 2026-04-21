@@ -2,8 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 
+type SupportCategory = 'Learning Support' | 'Technical Issues' | 'Assignments & Marks';
+
+type Ticket = {
+  id: number;
+  title: string;
+  category: SupportCategory;
+  status: string;
+  created_at: string;
+};
+
 const SupportPage: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('Learning Support');
+  const [selectedCategory, setSelectedCategory] = useState<SupportCategory>('Learning Support');
   const [searchQuery, setSearchQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [showHelpful, setShowHelpful] = useState(false);
@@ -16,7 +26,7 @@ const SupportPage: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('Help');
   const [isLoading, setIsLoading] = useState(false);
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
 
   useEffect(() => {
     if (activeTab === 'My Tickets') {
@@ -34,13 +44,13 @@ const SupportPage: React.FC = () => {
     }
   };
 
-  const categories = [
+  const categories: SupportCategory[] = [
     'Learning Support',
     'Technical Issues',
     'Assignments & Marks'
   ];
 
-  const quickOptions = {
+  const quickOptions: Record<SupportCategory, string[]> = {
     'Learning Support': ['Mentor Support', 'Doubt Session', 'Notes'],
     'Technical Issues': ['Login Issue', 'Video Not Playing', 'Page Not Loading'],
     'Assignments & Marks': ['Assignment Upload Issue', 'Marks Not Updated', 'Submission Error']

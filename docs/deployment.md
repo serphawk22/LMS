@@ -88,7 +88,7 @@ Notes:
 Create `frontend/.env.production` or configure equivalent host-managed environment variables:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.your-domain.com/api/v1
+NEXT_PUBLIC_API_URL=https://lms-production-548e.up.railway.app/api/v1
 NEXT_PUBLIC_TENANT_ID=optional-default-tenant-id
 ```
 
@@ -162,7 +162,7 @@ Notes:
 
 - Replace `ALLOWED_ORIGINS` with your real Vercel frontend URL.
 - If you later add a custom frontend domain, include that origin too.
-- Railway provides HTTPS automatically, so your backend URL will look like `https://your-backend.up.railway.app`.
+- Railway provides HTTPS automatically. This deployment uses `https://lms-production-548e.up.railway.app`.
 
 ### 3. Add PostgreSQL
 
@@ -193,7 +193,7 @@ After deploy:
 - Verify the health endpoint:
 
 ```text
-https://your-backend.up.railway.app/api/v1/health
+https://lms-production-548e.up.railway.app/api/v1/health
 ```
 
 Expected response:
@@ -225,7 +225,7 @@ In Vercel:
 Add this environment variable in Vercel:
 
 ```env
-NEXT_PUBLIC_API_URL=https://your-backend.up.railway.app/api/v1
+NEXT_PUBLIC_API_URL=https://lms-production-548e.up.railway.app/api/v1
 ```
 
 Optional:
@@ -308,7 +308,7 @@ Why:
 - Backend health check works:
 
 ```text
-GET https://api.your-domain.com/api/v1/health
+GET https://lms-production-548e.up.railway.app/api/v1/health
 ```
 
 - Frontend can load without CORS errors
