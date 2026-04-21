@@ -145,7 +145,11 @@ def download_certificate_pdf(
     if certificate.user_id != current_user.id and not current_user.is_staff:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to download this certificate.")
 
-    pdf_bytes = certificate_service.generate_certificate_pdf_bytes(certificate)
+    try:
+        pdf_bytes = certificate_service.generate_certificate_pdf_bytes(certificate)
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
     buffer = io.BytesIO(pdf_bytes)
     return StreamingResponse(
         buffer,

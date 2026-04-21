@@ -6,8 +6,6 @@ from datetime import datetime, timezone
 from typing import Any, List
 
 from mako.template import Template
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -164,6 +162,12 @@ def render_certificate_html(certificate: Certificate) -> str:
 
 
 def generate_certificate_pdf_bytes(certificate: Certificate) -> bytes:
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.pdfgen import canvas
+    except ImportError as exc:
+        raise RuntimeError("PDF certificate generation is not available in this deployment.") from exc
+
     buffer = io.BytesIO()
     pdf_canvas = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
