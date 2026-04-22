@@ -191,6 +191,8 @@ from .chatbot import (
 from .support import (
     AIHelpRequest,
     AIHelpResponse,
+    FeedbackRequest,
+    FeedbackResponse,
     RaiseTicketRequest,
     TicketResponse,
     RaiseTicketResponse,
@@ -203,6 +205,16 @@ from .daily_learning import (
 )
 from .calendar import (
     CalendarEventRead,
+)
+from .discussion import (
+    DiscussionAuthorRead,
+    DiscussionCreate,
+    DiscussionDetailRead,
+    DiscussionRead,
+    DiscussionReplyCreate,
+    DiscussionReplyRead,
+    DiscussionReplyUpdate,
+    DiscussionStatusUpdate,
 )
 
 __all__ = [
@@ -376,6 +388,8 @@ __all__ = [
     "CourseAIChatResponse",
     "AIHelpRequest",
     "AIHelpResponse",
+    "FeedbackRequest",
+    "FeedbackResponse",
     "RaiseTicketRequest",
     "TicketResponse",
     "RaiseTicketResponse",
@@ -384,4 +398,12 @@ __all__ = [
     "DailyLearningVideoCreate",
     "DailyLearningVideoRead",
     "CalendarEventRead",
+    "DiscussionAuthorRead",
+    "DiscussionCreate",
+    "DiscussionDetailRead",
+    "DiscussionRead",
+    "DiscussionReplyCreate",
+    "DiscussionReplyRead",
+    "DiscussionReplyUpdate",
+    "DiscussionStatusUpdate",
 ]

@@ -8,6 +8,9 @@ from .lms_models import (
     CourseCategory,
     CourseTag,
     DailyLearningVideo,
+    Discussion,
+    DiscussionReply,
+    DiscussionStatus,
     Department,
     Enrollment,
     Invitation,
@@ -57,6 +60,7 @@ from .lms_models import (
     LeaderboardMetric,
 )
 from .ticket import Ticket
+from .feedback import SupportFeedback
 
 __all__ = [
     "Assignment",
@@ -68,6 +72,9 @@ __all__ = [
     "CourseCategory",
     "CourseTag",
     "DailyLearningVideo",
+    "Discussion",
+    "DiscussionReply",
+    "DiscussionStatus",
     "Department",
     "Enrollment",
     "Invitation",
@@ -115,5 +122,6 @@ __all__ = [
     "QuizAttemptStatus",
     "LeaderboardMetric",
     "Ticket",
+    "SupportFeedback",
 ]
 

@@ -25,8 +25,8 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <div className="mx-auto max-w-6xl space-y-10">
+    <main className="w-full min-h-screen bg-slate-50 px-6 lg:px-10 py-16 text-slate-900">
+      <div className="w-full space-y-10">
         <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
           <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Analytics</p>
           <h1 className="mt-3 text-3xl font-semibold">Organization performance</h1>

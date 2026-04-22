@@ -13,6 +13,19 @@ class AIHelpResponse(BaseModel):
     answer: str = Field(..., description="AI-generated response to the query")
 
 
+class FeedbackRequest(BaseModel):
+    """Request schema for submitting feedback on AI help"""
+    query: str = Field(..., description="The original query", min_length=1)
+    helpful: bool = Field(..., description="Whether the AI response was helpful")
+    timestamp: datetime = Field(..., description="When the feedback was submitted")
+
+
+class FeedbackResponse(BaseModel):
+    """Response schema for feedback submission"""
+    message: str = Field(..., description="Success message")
+    feedback_id: Optional[int] = Field(None, description="Created feedback ID")
+
+
 class RaiseTicketRequest(BaseModel):
     """Request schema for raising a support ticket"""
     student_name: str = Field(..., description="Name of the student", min_length=1)

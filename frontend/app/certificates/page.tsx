@@ -52,8 +52,8 @@ export default function CertificatesPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-5xl px-6 py-10">
+    <main className="w-full min-h-screen bg-slate-50 px-6 lg:px-10 py-10 text-slate-900">
+      <div className="w-full">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold">Certificates</h1>
           <p className="mt-2 text-slate-600">View issued certificates, download PDF copies, and create shareable certificate links.</p>

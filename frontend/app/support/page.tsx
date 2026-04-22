@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import * as supportService from '@/services/support';
 
 type SupportCategory = 'Learning Support' | 'Technical Issues' | 'Assignments & Marks';
 
@@ -27,6 +28,8 @@ const SupportPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('Help');
   const [isLoading, setIsLoading] = useState(false);
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [showFeedbackSuccess, setShowFeedbackSuccess] = useState(false);
 
   useEffect(() => {
     if (activeTab === 'My Tickets') {
@@ -34,11 +37,44 @@ const SupportPage: React.FC = () => {
     }
   }, [activeTab]);
 
+  // Array of positive feedback messages
+  const positiveMessages = [
+    '😊 Glad we could help!',
+    '✨ Happy to assist you!',
+    '🎉 Great! Let us know if you need anything else.',
+    '👍 Awesome! Your issue seems resolved.',
+    '🙌 Thanks for using our support system!'
+  ];
+
+  // Get a random positive message
+  const getRandomPositiveMessage = () => {
+    const randomIndex = Math.floor(Math.random() * positiveMessages.length);
+    return positiveMessages[randomIndex];
+  };
+
+  // Handle "Yes" feedback click
+  const handleYesClick = async () => {
+    const message = getRandomPositiveMessage();
+    setSuccessMessage(message);
+    setShowFeedbackSuccess(true);
+    setHelpful(true);
+
+    // Track feedback (optional - for analytics)
+    try {
+      await supportService.submitFeedback({
+        query: searchQuery,
+        helpful: true,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.log('Feedback tracked locally');
+    }
+  };
+
   const fetchTickets = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/v1/support/tickets');
-      const data = await res.json();
-      setTickets(data.tickets);
+      const tickets = await supportService.getTickets();
+      setTickets(tickets);
     } catch (error) {
       console.error(error);
     }
@@ -59,12 +95,7 @@ const SupportPage: React.FC = () => {
   const submitQuery = async (query: string) => {
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:8000/api/v1/support/ai-help', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-      });
-      const data = await res.json();
+      const data = await supportService.getAIHelp(query);
       console.log('API Response:', data);
       setAiResponse(data.answer);
       setShowHelpful(true);
@@ -94,20 +125,15 @@ const SupportPage: React.FC = () => {
       formData.append('file', ticketFile);
     }
     try {
-      const res = await fetch('http://localhost:8000/api/v1/support/raise-ticket', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-      if (res.ok) {
+      const data = await supportService.raiseTicket(formData);
+      if (data.ticket_id) {
         setShowSuccess(true);
         setShowForm(false);
         // Add to tickets
         setTickets(prev => [...prev, {
           id: data.ticket_id,
-          student_name: ticketName,
-          category: selectedCategory,
           title: ticketTitle,
+          category: selectedCategory,
           status: 'Pending',
           created_at: new Date().toISOString()
         }]);
@@ -245,9 +271,35 @@ const SupportPage: React.FC = () => {
                 <h3>🤖 AI Support</h3>
                 <p>{aiResponse}</p>
                 <div className="mt-2">
-                  <p>Was this helpful?</p>
-                  <button onClick={() => setHelpful(true)} className="mr-2 bg-green-500 text-white px-4 py-2 rounded">Yes</button>
-                  <button onClick={() => { setHelpful(false); setShowForm(true); }} className="bg-red-500 text-white px-4 py-2 rounded">No</button>
+                  {!showFeedbackSuccess ? (
+                    <>
+                      <p>Was this helpful?</p>
+                      <button 
+                        onClick={handleYesClick} 
+                        className="mr-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+                      >
+                        Yes
+                      </button>
+                      <button 
+                        onClick={() => { setHelpful(false); setShowForm(true); }} 
+                        className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-colors"
+                      >
+                        No
+                      </button>
+                    </>
+                  ) : (
+                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg animate-fadeIn">
+                      <div className="flex items-start">
+                        <div className="text-green-600 mr-3 text-2xl">✓</div>
+                        <div>
+                          <p className="text-green-800 font-medium text-lg">{successMessage}</p>
+                          <p className="text-green-700 text-sm mt-2">
+                            Your feedback helps us improve our support system.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

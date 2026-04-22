@@ -67,7 +67,7 @@ export default function AdminStudentActivitiesPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="w-full space-y-8">
         <header className="flex flex-col gap-4 rounded-3xl bg-white px-8 py-8 shadow-md sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Admin dashboard</p>

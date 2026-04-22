@@ -64,8 +64,8 @@ export default function AssignmentDetailPage() {
   );
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <div className="mx-auto max-w-4xl space-y-8">
+    <main className="w-full min-h-screen bg-slate-50 px-6 lg:px-10 py-16 text-slate-900">
+      <div className="w-full space-y-8">
         {loading ? (
           <div className="rounded-3xl bg-white p-10 text-slate-500 shadow-sm shadow-slate-200/40">Loading assignment…</div>
         ) : assignment ? (

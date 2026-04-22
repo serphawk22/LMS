@@ -1,23 +1,22 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Ticket
+from app.models import Ticket, SupportFeedback
 from app import schemas
-from openai import OpenAI
-import os
 import asyncio
 import time
 import logging
+from app.config import settings
+
+try:
+    from openai import OpenAI
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OpenAI = None
+    OPENAI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    logger.warning("OpenAI API key not found")
-    client = None
-else:
-    client = OpenAI(api_key=api_key)
 
 @router.post("/ai-help", response_model=schemas.AIHelpResponse)
 async def ai_help(payload: schemas.AIHelpRequest):
@@ -34,12 +33,14 @@ async def ai_help(payload: schemas.AIHelpRequest):
     query = payload.query
     logger.info(f"AI Help request started at {start_time} for query: {query}")
     try:
-        if not api_key or not client:
+        api_key = settings.openai_api_key
+        if not OPENAI_AVAILABLE or not api_key:
             logger.error("OpenAI API key not configured")
             raise HTTPException(
                 status_code=500,
                 detail="AI assistant is not configured. Please try again or raise a ticket."
             )
+        client = OpenAI(api_key=api_key)
         
         # Call OpenAI API with timeout
         response = await asyncio.wait_for(
@@ -177,4 +178,39 @@ async def get_tickets(db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500,
             detail="Error fetching tickets. Please try again."
+        )
+
+
+@router.post("/feedback", response_model=schemas.FeedbackResponse)
+async def submit_feedback(payload: schemas.FeedbackRequest, db: Session = Depends(get_db)):
+    """
+    Submit user feedback for AI support responses.
+    
+    Args:
+        payload: FeedbackRequest containing query, helpful status, and timestamp
+        db: Database session
+    
+    Returns:
+        FeedbackResponse with feedback ID
+    """
+    try:
+        feedback = SupportFeedback(
+            query=payload.query,
+            helpful=payload.helpful,
+            timestamp=payload.timestamp
+        )
+        db.add(feedback)
+        db.commit()
+        db.refresh(feedback)
+        logger.info(f"Feedback recorded with ID: {feedback.id}, helpful: {payload.helpful}")
+        return {
+            "message": "Thank you for your feedback!",
+            "feedback_id": feedback.id
+        }
+    except Exception as e:
+        logger.error(f"Error recording feedback: {str(e)}", exc_info=True)
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Error recording feedback. Please try again."
         )

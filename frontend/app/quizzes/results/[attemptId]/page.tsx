@@ -59,7 +59,7 @@ export default function QuizResultsPage({ params }: QuizResultsPageProps) {
   if (error) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-700">
+        <div className="w-full rounded-3xl border border-rose-200 bg-rose-50 p-8 text-rose-700">
           {error}
         </div>
       </main>
@@ -69,7 +69,7 @@ export default function QuizResultsPage({ params }: QuizResultsPageProps) {
   if (!result) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           Loading quiz results...
         </div>
       </main>
@@ -77,8 +77,8 @@ export default function QuizResultsPage({ params }: QuizResultsPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900">
-      <div className="mx-auto max-w-5xl space-y-8">
+    <main className="w-full min-h-screen bg-slate-50 px-6 lg:px-10 py-12 text-slate-900">
+      <div className="w-full space-y-8">
         <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
           <p className="text-sm uppercase tracking-[0.3em] text-emerald-600">Quiz completed</p>
           <h1 className="mt-3 text-3xl font-semibold">{result.quiz_title ?? 'Quiz Results'}</h1>

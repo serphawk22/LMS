@@ -39,7 +39,7 @@ export default function QuizzesPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="w-full space-y-8">
         <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
           <div className="space-y-4">
             <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Instructor quizzes</p>

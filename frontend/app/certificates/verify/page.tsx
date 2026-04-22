@@ -27,7 +27,7 @@ export default function CertificateVerifyPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className="w-full px-6 lg:px-10 py-10">
         <div className="mb-8">
           <h1 className="text-3xl font-semibold">Verify Certificate</h1>
           <p className="mt-2 text-slate-600">Enter a certificate verification token to confirm whether the certificate is valid.</p>

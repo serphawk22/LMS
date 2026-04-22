@@ -35,7 +35,7 @@ export function AdminHeader() {
   if (isAuthPage) {
     return (
       <header className="admin-header border-b border-slate-800 bg-slate-950">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+        <div className="w-full flex items-center justify-between px-6 lg:px-10 py-4">
           <Link href="/admin" className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white shadow-lg shadow-indigo-500/25">A</span>
             <span className="text-sm font-semibold text-white tracking-wide">LMS Admin</span>
@@ -62,7 +62,7 @@ export function AdminHeader() {
   /* ── full admin header ───────────────────────────────────── */
   return (
     <header className="admin-header border-b border-slate-800 bg-slate-950">
-      <div className="mx-auto max-w-7xl px-6">
+      <div className="w-full px-6 lg:px-10">
         {/* top bar */}
         <div className="flex items-center justify-between py-4">
           <Link href="/admin" className="flex items-center gap-2.5">

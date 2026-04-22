@@ -493,8 +493,8 @@ export default function LiveClassPage({ params }: LiveClassPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="max-w-6xl mx-auto p-6">
+    <div className="w-full min-h-screen bg-gray-900 text-white">
+      <div className="w-full px-6 lg:px-10 py-6">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">Live Class</h1>

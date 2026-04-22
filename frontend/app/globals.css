@@ -199,6 +199,22 @@ h3 {
   background-color: rgba(59, 130, 246, 0.1);
 }
 
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
 .hero-glow-1 {
   background-color: var(--hero-glow-1);
 }

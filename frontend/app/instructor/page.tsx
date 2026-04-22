@@ -676,7 +676,7 @@ export default function InstructorPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 sm:px-6">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="w-full space-y-8">
 
         {/* ── header ─────────────────────────────────────── */}
         <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 px-8 py-10 text-white shadow-2xl sm:px-12">

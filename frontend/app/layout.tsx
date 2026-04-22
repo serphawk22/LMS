@@ -38,9 +38,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen">
+      <body className="w-full min-h-screen overflow-x-hidden">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col">
+          <div className="w-full min-h-screen flex flex-col">
             {children}
           </div>
         </ThemeProvider>

@@ -60,7 +60,7 @@ export default function LessonPlayerPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 sm:px-6 sm:py-14 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="w-full space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Course player</p>

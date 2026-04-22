@@ -17,11 +17,20 @@ class Settings(BaseSettings):
     app_name: str = "LMS Platform"
     environment: str = "development"
     debug: bool = True
-    database_url: str = (
-        "postgresql+psycopg://neondb_owner:npg_dY0BpO7Tqjai@"
+    database_url: str = Field(
+        default="postgresql+psycopg://neondb_owner:npg_dY0BpO7Tqjai@"
         "ep-mute-violet-a4x1yk1b-pooler.us-east-1.aws.neon.tech/"
-        "neondb?sslmode=require"
+        "neondb?sslmode=require",
+        validation_alias=AliasChoices("DATABASE_URL")
     )
+    database_connect_timeout: int = Field(default=60, validation_alias=AliasChoices("DATABASE_CONNECT_TIMEOUT"))
+    database_init_retries: int = Field(default=5, validation_alias=AliasChoices("DATABASE_INIT_RETRIES"))
+    database_init_retry_delay_seconds: int = Field(default=3, validation_alias=AliasChoices("DATABASE_INIT_RETRY_DELAY"))
+    database_pool_size: int = Field(default=10, validation_alias=AliasChoices("DATABASE_POOL_SIZE"))
+    database_max_overflow: int = Field(default=20, validation_alias=AliasChoices("DATABASE_MAX_OVERFLOW"))
+    database_pool_timeout: int = Field(default=30, validation_alias=AliasChoices("DATABASE_POOL_TIMEOUT"))
+    database_pool_recycle: int = Field(default=300, validation_alias=AliasChoices("DATABASE_POOL_RECYCLE"))
+    skip_db_init_on_startup: bool = Field(default=False, validation_alias=AliasChoices("SKIP_DB_INIT_ON_STARTUP"))
     jwt_secret: SecretStr = SecretStr("super-secret-change-me")
     jwt_algorithm: str = "HS256"
     jwt_access_token_expires_minutes: int = 60
@@ -95,6 +104,17 @@ class Settings(BaseSettings):
             if normalized in {"false", "0", "no", "n", "off", "release"}:
                 return False
             if normalized in {"true", "1", "yes", "y", "on", "debug"}:
+                return True
+        return value
+
+    @field_validator("skip_db_init_on_startup", mode="before")
+    @classmethod
+    def parse_skip_db_init_on_startup(cls, value):
+        if isinstance(value, str):
+            normalized = value.strip().lower()
+            if normalized in {"false", "0", "no", "n", "off"}:
+                return False
+            if normalized in {"true", "1", "yes", "y", "on"}:
                 return True
         return value
 

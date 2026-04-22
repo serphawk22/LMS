@@ -348,7 +348,7 @@ export default function QuizPlayer({ courseId, quizId }: QuizPlayerProps) {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-6 py-10">
+    <div className="w-full space-y-8 px-6 lg:px-10 py-10">
       <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>

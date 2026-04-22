@@ -375,7 +375,7 @@ export default function LessonManagementPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 sm:px-6">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="w-full space-y-8">
 
         {/* ── Header ─────────────────────────────────────── */}
         <section className="flex items-center justify-between">

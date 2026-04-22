@@ -156,8 +156,8 @@ export default function AccountPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(251,207,229,0.38),_transparent_28%),_linear-gradient(180deg,_#f9ede9,_#fcf6f0)] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <main className="w-full min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(251,207,229,0.38),_transparent_28%),_linear-gradient(180deg,_#f9ede9,_#fcf6f0)] px-6 lg:px-10 py-8 text-slate-900">
+      <div className="w-full">
         <div className="mb-10 flex flex-col gap-3 rounded-[2rem] bg-white/90 p-8 shadow-2xl shadow-pink-200/30 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.24em] text-pink-600">Account</p>

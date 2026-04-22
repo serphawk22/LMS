@@ -168,7 +168,7 @@ export default function CalendarPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <ModernHeader />
 
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="w-full px-6 lg:px-10 py-8">
         {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Calendar</h1>

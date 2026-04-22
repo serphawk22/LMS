@@ -880,6 +880,48 @@ class Announcement(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
     )
 
 
+class DiscussionStatus(str, enum.Enum):
+    open = "open"
+    closed = "closed"
+
+
+class Discussion(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
+    __tablename__ = "discussions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    category = Column(String(100), nullable=False)
+    status = Column(Enum(DiscussionStatus), nullable=False, default=DiscussionStatus.open, server_default=DiscussionStatus.open.value)
+
+    user = relationship("User")
+    replies = relationship("DiscussionReply", back_populates="discussion", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        Index("ix_discussions_org_status", "organization_id", "status"),
+        Index("ix_discussions_org_category", "organization_id", "category"),
+        Index("ix_discussions_org_created", "organization_id", "created_at"),
+    )
+
+
+class DiscussionReply(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
+    __tablename__ = "discussion_replies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    discussion_id = Column(Integer, ForeignKey("discussions.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    message = Column(Text, nullable=False)
+
+    discussion = relationship("Discussion", back_populates="replies")
+    user = relationship("User")
+
+    __table_args__ = (
+        Index("ix_discussion_replies_org_discussion", "organization_id", "discussion_id"),
+        Index("ix_discussion_replies_org_user", "organization_id", "user_id"),
+    )
+
+
 learning_path_courses = Table(
     "learning_path_courses",
     Base.metadata,

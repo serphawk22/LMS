@@ -28,7 +28,7 @@ export default function AssignmentsPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-      <div className="mx-auto max-w-6xl space-y-8">
+      <div className="w-full space-y-8">
         <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>

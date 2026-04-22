@@ -18,7 +18,7 @@ export default function CourseQuizPage({ params }: CourseQuizPageProps) {
   if (!courseId || isNaN(courseId)) {
     return (
       <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
-        <div className="mx-auto max-w-4xl">
+        <div className="w-full">
           <div className="rounded-3xl border border-rose-200 bg-rose-50 p-10 text-rose-700">
             Invalid course ID.
           </div>

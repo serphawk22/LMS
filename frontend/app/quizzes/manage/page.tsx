@@ -33,7 +33,7 @@ export default function ManageQuizzesPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900">
-      <section className="mx-auto max-w-6xl px-6 py-12">
+      <section className="w-full px-6 lg:px-10 py-12">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Admin dashboard</p>

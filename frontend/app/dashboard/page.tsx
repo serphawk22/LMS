@@ -549,8 +549,8 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen bg-[var(--bg-color)]">
         <ModernHeader />
-        <main className="px-4 sm:px-6 lg:px-8 py-16">
-          <div className="mx-auto max-w-6xl">
+        <main className="w-full px-6 lg:px-10 py-16">
+          <div className="w-full">
             <div className="modern-card p-10 text-center spark">
               <p className="text-slate-600 font-medium">Loading your dashboard...</p>
             </div>
@@ -571,8 +571,8 @@ export default function DashboardPage() {
       </div>
       <ModernHeader showNav={true} userName={user?.full_name || 'User'} userInitials={userInitials} userImageUrl={user?.avatar_url || undefined} />
 
-      <main className="px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mx-auto max-w-7xl space-y-12">
+      <main className="w-full px-6 lg:px-10 py-12">
+        <div className="w-full space-y-12">
           {/* Error Alert */}
           {error && (
             <div className="rounded-xl bg-red-50 border border-red-200 p-4 sm:p-6">
