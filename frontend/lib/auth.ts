@@ -2,6 +2,7 @@ import type { UserProfile } from '@/types/auth';
 
 interface JwtPayload {
   tenant_id?: string | number;
+  exp?: number | string;
   [key: string]: unknown;
 }
 
@@ -26,9 +27,30 @@ function decodeJwt(token: string): JwtPayload {
   }
 }
 
+export function getTokenPayload(token: string) {
+  return decodeJwt(token);
+}
+
+export function isAccessTokenValid(token: string) {
+  const payload = decodeJwt(token);
+  if (!payload || !Object.prototype.hasOwnProperty.call(payload, 'exp')) {
+    return false;
+  }
+
+  const rawExp = payload.exp;
+  const exp = typeof rawExp === 'string' ? Number(rawExp) : rawExp;
+  if (typeof exp !== 'number' || Number.isNaN(exp) || exp <= 0) {
+    return false;
+  }
+
+  return Date.now() / 1000 < exp;
+}
+
 export function isAuthenticated() {
   if (typeof window === 'undefined') return false;
-  return Boolean(window.localStorage.getItem('access_token'));
+
+  const token = window.localStorage.getItem('access_token');
+  return Boolean(token && isAccessTokenValid(token));
 }
 
 export function saveAuthToken(token: string) {
@@ -38,6 +60,12 @@ export function saveAuthToken(token: string) {
     if (payload?.tenant_id) {
       window.localStorage.setItem('tenant_id', String(payload.tenant_id));
     }
+  }
+}
+
+export function clearAccessToken() {
+  if (typeof window !== 'undefined') {
+    window.localStorage.removeItem('access_token');
   }
 }
 

@@ -23,18 +23,25 @@ def _reply_permissions(user: User, reply: DiscussionReply) -> tuple[bool, bool]:
     return is_owner, is_owner or is_privileged
 
 
+def _can_mark_best_answer(user: User, discussion: Discussion) -> bool:
+    """Only the discussion author or instructors can mark best answers."""
+    return discussion.user_id == user.id or _normalized_role(user) in PRIVILEGED_ROLES
+
+
 def _discussion_author_payload(user: User | None) -> dict:
     if not user:
-        return {"id": 0, "full_name": "Unknown User", "email": "unknown@example.com"}
+        return {"id": 0, "full_name": "Unknown User", "email": "unknown@example.com", "role": "unknown"}
     return {
         "id": user.id,
         "full_name": user.full_name,
         "email": user.email,
+        "role": _normalized_role(user),
     }
 
 
 def _serialize_reply(reply: DiscussionReply, current_user: User) -> dict:
     can_edit, can_delete = _reply_permissions(current_user, reply)
+    can_mark = _can_mark_best_answer(current_user, reply.discussion)
     return {
         "id": reply.id,
         "discussion_id": reply.discussion_id,
@@ -46,6 +53,8 @@ def _serialize_reply(reply: DiscussionReply, current_user: User) -> dict:
         "author": _discussion_author_payload(reply.user),
         "can_edit": can_edit,
         "can_delete": can_delete,
+        "is_best_answer": reply.is_best_answer,
+        "can_mark_best_answer": can_mark,
     }
 
 
@@ -241,6 +250,30 @@ def update_discussion_status(db: Session, current_user: User, discussion: Discus
     db.add(discussion)
     db.commit()
     detail = get_discussion_detail(db, discussion.id, current_user)
+    if detail is None:
+        raise ValueError("Discussion not found.")
+    return detail
+
+
+def mark_best_answer(db: Session, current_user: User, reply: DiscussionReply, *, is_best: bool) -> dict:
+    """Mark or unmark a reply as the best answer."""
+    discussion = reply.discussion
+    if not _can_mark_best_answer(current_user, discussion):
+        raise PermissionError("You do not have permission to mark best answers on this discussion.")
+
+    if is_best:
+        # Unmark any current best answer
+        for existing_reply in discussion.replies:
+            if existing_reply.is_best_answer and existing_reply.id != reply.id:
+                existing_reply.is_best_answer = False
+                db.add(existing_reply)
+        reply.is_best_answer = True
+    else:
+        reply.is_best_answer = False
+
+    db.add(reply)
+    db.commit()
+    detail = get_discussion_detail(db, reply.discussion_id, current_user)
     if detail is None:
         raise ValueError("Discussion not found.")
     return detail

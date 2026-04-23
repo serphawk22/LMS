@@ -10,6 +10,7 @@ class DiscussionAuthorRead(BaseModel):
     id: int
     full_name: str | None = None
     email: str
+    role: str = "student"
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -36,6 +37,8 @@ class DiscussionReplyRead(DiscussionReplyBase):
     author: DiscussionAuthorRead
     can_edit: bool = False
     can_delete: bool = False
+    is_best_answer: bool = False
+    can_mark_best_answer: bool = False
 
 
 class DiscussionBase(BaseModel):
@@ -50,6 +53,10 @@ class DiscussionCreate(DiscussionBase):
 
 class DiscussionStatusUpdate(BaseModel):
     status: str = Field(..., pattern="^(open|closed)$")
+
+
+class MarkBestAnswerUpdate(BaseModel):
+    is_best_answer: bool = Field(..., description="Whether to mark as best answer or unmark")
 
 
 class DiscussionRead(BaseModel):

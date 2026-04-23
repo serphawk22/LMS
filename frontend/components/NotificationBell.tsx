@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { fetchStudentNotifications, markNotificationAsRead } from '@/services/dashboard';
 import type { DashboardNotificationItem } from '@/types/dashboard';
 
 const POLL_INTERVAL_MS = 30000;
 
 export function NotificationBell() {
+  const { authenticated } = useAuth();
   const [notifications, setNotifications] = useState<DashboardNotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -31,20 +33,26 @@ export function NotificationBell() {
     let mounted = true;
 
     async function safeLoadNotifications() {
-      if (!mounted) return;
+      if (!mounted || !authenticated) return;
       await loadNotifications();
     }
 
-    safeLoadNotifications();
-    const interval = window.setInterval(safeLoadNotifications, POLL_INTERVAL_MS);
+    if (authenticated) {
+      safeLoadNotifications();
+      const interval = window.setInterval(safeLoadNotifications, POLL_INTERVAL_MS);
+      return () => {
+        mounted = false;
+        window.clearInterval(interval);
+      };
+    }
+
     return () => {
       mounted = false;
-      window.clearInterval(interval);
     };
-  }, []);
+  }, [authenticated]);
 
   useEffect(() => {
-    if (!isOpen) {
+    if (!isOpen || !authenticated) {
       return;
     }
 
@@ -60,7 +68,7 @@ export function NotificationBell() {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isOpen]);
+  }, [isOpen, authenticated]);
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => notification.status === 'unread').length,

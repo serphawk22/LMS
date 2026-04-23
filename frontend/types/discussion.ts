@@ -4,6 +4,7 @@ export interface DiscussionAuthor {
   id: number;
   full_name: string | null;
   email: string;
+  role: string;
 }
 
 export interface DiscussionReply {
@@ -17,6 +18,8 @@ export interface DiscussionReply {
   author: DiscussionAuthor;
   can_edit: boolean;
   can_delete: boolean;
+  is_best_answer: boolean;
+  can_mark_best_answer: boolean;
 }
 
 export interface Discussion {
@@ -51,4 +54,8 @@ export interface CreateReplyPayload {
 
 export interface UpdateReplyPayload {
   message: string;
+}
+
+export interface MarkBestAnswerPayload {
+  is_best_answer: boolean;
 }

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
+import { clearAccessToken, isAccessTokenValid } from '@/lib/auth';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1',
@@ -23,7 +24,11 @@ api.interceptors.request.use((config) => {
 
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    if (isAccessTokenValid(token)) {
+      headers.Authorization = `Bearer ${token}`;
+    } else {
+      clearAccessToken();
+    }
   }
 
   let tenant = typeof window !== 'undefined'
@@ -66,7 +71,7 @@ api.interceptors.response.use(
       const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
 
       if (!refreshToken) {
-        // Clear invalid tokens
+        // No refresh token available - user is not authenticated
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('tenant_id');
@@ -94,6 +99,11 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'}/auth/refresh`,
           { refresh_token: refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
         );
 
         const newAccessToken = data.access_token;

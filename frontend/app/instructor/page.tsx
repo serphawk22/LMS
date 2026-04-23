@@ -66,7 +66,7 @@ function slugify(s: string) {
 const LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 const VISIBILITY = ['public', 'private'] as const;
 
-type Tab = 'courses' | 'create' | 'edit' | 'structure' | 'quizzes' | 'assignments' | 'results' | 'announcements' | 'submissions' | 'live_classes';
+type Tab = 'courses' | 'create' | 'edit' | 'structure' | 'quizzes' | 'assignments' | 'results' | 'announcements' | 'submissions' | 'live_classes' | 'discussions';
 
 /* ─── page ──────────────────────────────────────────────────── */
 
@@ -199,11 +199,15 @@ export default function InstructorPage() {
 
   useEffect(() => {
     if (authenticated && isInstructor) {
+      if (tab === 'discussions') {
+        router.push('/discussions');
+        return;
+      }
       loadCourses();
       if (tab === 'quizzes') loadQuizzes();
       if (tab === 'results') loadQuizResults();
     }
-  }, [authenticated, isInstructor, loadCourses, tab, loadQuizzes, loadQuizResults]);
+  }, [authenticated, isInstructor, loadCourses, tab, loadQuizzes, loadQuizResults, router]);
 
   /* ── filtered courses ───────────────────────────────────── */
   const filteredCourses = useMemo(() => {
@@ -685,14 +689,14 @@ export default function InstructorPage() {
           <p className="mt-4 max-w-xl text-slate-300 text-sm sm:text-base">Create, edit, publish and organise your courses, modules and lessons from one place.</p>
 
           <div className="mt-8 flex flex-wrap gap-2">
-            {(['courses', 'create', 'quizzes', 'assignments', 'submissions', 'results', 'announcements', 'live_classes'] as Tab[]).map((t) => (
+            {(['courses', 'create', 'quizzes', 'assignments', 'submissions', 'results', 'announcements', 'live_classes', 'discussions'] as Tab[]).map((t) => (
               <button
                 key={t}
                 type="button"
                 onClick={() => { setTab(t); if (t === 'create') { setForm({ ...emptyForm }); setEditId(null); } }}
                 className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === t ? 'bg-white text-slate-900' : 'bg-white/10 text-white hover:bg-white/20'}`}
               >
-                {t === 'courses' ? 'My courses' : t === 'create' ? 'New course' : t === 'quizzes' ? 'Quizzes' : t === 'assignments' ? 'Assignments' : t === 'submissions' ? 'Submissions' : t === 'results' ? 'Results' : t === 'announcements' ? 'Announcements' : 'Live Classes'}
+                {t === 'courses' ? 'My courses' : t === 'create' ? 'New course' : t === 'quizzes' ? 'Quizzes' : t === 'assignments' ? 'Assignments' : t === 'submissions' ? 'Submissions' : t === 'results' ? 'Results' : t === 'announcements' ? 'Announcements' : t === 'live_classes' ? 'Live Classes' : 'Discussions'}
               </button>
             ))}
             {tab === 'edit' && (
@@ -708,6 +712,11 @@ export default function InstructorPage() {
             {tab === 'live_classes' && (
               <button type="button" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900">
                 Live Classes
+              </button>
+            )}
+            {tab === 'discussions' && (
+              <button type="button" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900">
+                Discussions
               </button>
             )}
           </div>
@@ -1206,6 +1215,15 @@ export default function InstructorPage() {
         {/* TAB: LIVE CLASSES                                   */}
         {/* ═══════════════════════════════════════════════════ */}
         {tab === 'live_classes' && userId && <InstructorLiveClassesList instructorId={parseInt(userId)} />}
+
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: DISCUSSIONS                                    */}
+        {/* ═══════════════════════════════════════════════════ */}
+        {tab === 'discussions' && (
+          <div className="rounded-[28px] border border-slate-200/70 bg-slate-50 p-6 text-center">
+            <p className="text-slate-600">Redirecting to Discussions...</p>
+          </div>
+        )}
 
         {/* ═══════════════════════════════════════════════════ */}
         {/* TAB: QUIZZES                                        */}

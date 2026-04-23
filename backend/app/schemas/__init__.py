@@ -215,6 +215,7 @@ from .discussion import (
     DiscussionReplyRead,
     DiscussionReplyUpdate,
     DiscussionStatusUpdate,
+    MarkBestAnswerUpdate,
 )
 
 __all__ = [
@@ -406,4 +407,5 @@ __all__ = [
     "DiscussionReplyRead",
     "DiscussionReplyUpdate",
     "DiscussionStatusUpdate",
+    "MarkBestAnswerUpdate",
 ]

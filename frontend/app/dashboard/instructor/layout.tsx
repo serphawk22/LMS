@@ -15,6 +15,7 @@ const instructorNav = [
   { href: '/dashboard/instructor/quizzes', label: 'Quizzes' },
   { href: '/dashboard/instructor/assignments', label: 'Assignments' },
   { href: '/dashboard/instructor/reviews', label: 'Reviews' },
+  { href: '/discussions', label: 'Discussions' },
 ];
 
 export default function InstructorLayout({

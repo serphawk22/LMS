@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { isAuthenticated } from '@/lib/auth';
+import { clearAccessToken, isAuthenticated } from '@/lib/auth';
 import { getOrganization, type Organization } from '@/services/organizations';
 
 interface AuthState {
@@ -39,6 +39,7 @@ export function useAuth(): AuthState {
   useEffect(() => {
     const auth = isAuthenticated();
     if (!auth) {
+      clearAccessToken();
       setState({ authenticated: false, initialized: true, role: null, tenantId: null, userId: null, user: null, organization: null });
       return;
     }

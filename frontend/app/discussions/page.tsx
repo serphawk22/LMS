@@ -12,7 +12,7 @@ import type { UserProfile } from '@/types/auth';
 const DISCUSSION_CATEGORIES = ['All', 'General', 'Assignments', 'Technical', 'Learning Support', 'Career', 'Exams'];
 
 export default function DiscussionsPage() {
-  const { authenticated, initialized } = useAuth();
+  const { authenticated, initialized, role } = useAuth();
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [discussions, setDiscussions] = useState<Discussion[]>([]);
@@ -115,13 +115,15 @@ export default function DiscussionsPage() {
                   Browse open discussions, search by topic, and jump into conversations without leaving your dashboard flow.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-95"
-              >
-                Ask Question
-              </button>
+              {role === 'student' && (
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:opacity-95"
+                >
+                  Ask Question
+                </button>
+              )}
             </div>
 
             <div className="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
@@ -201,6 +203,11 @@ export default function DiscussionsPage() {
                     <div className="grid gap-2 text-sm text-slate-500 lg:min-w-[220px] lg:text-right">
                       <p>
                         <span className="font-medium text-slate-700">Author:</span> {discussion.author.full_name || discussion.author.email}
+                        {discussion.author.role === 'instructor' && (
+                          <span className="ml-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-amber-700">
+                            Instructor
+                          </span>
+                        )}
                       </p>
                       <p>
                         <span className="font-medium text-slate-700">Date:</span> {new Date(discussion.created_at).toLocaleString()}
@@ -217,13 +224,13 @@ export default function DiscussionsPage() {
         </div>
       </main>
 
-      {showModal ? (
+      {showModal && role === 'student' && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
           <div className="w-full max-w-2xl rounded-[28px] border border-slate-200 bg-white p-6 shadow-2xl">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-2xl font-semibold text-slate-900">Ask a new question</h2>
-                <p className="mt-1 text-sm text-slate-600">Create a discussion thread inside the student dashboard.</p>
+                <p className="mt-1 text-sm text-slate-600">Create a discussion thread in the community forum.</p>
               </div>
               <button
                 type="button"
@@ -291,7 +298,7 @@ export default function DiscussionsPage() {
             </div>
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

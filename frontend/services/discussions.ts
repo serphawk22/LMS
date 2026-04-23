@@ -5,6 +5,7 @@ import type {
   Discussion,
   DiscussionDetail,
   UpdateReplyPayload,
+  MarkBestAnswerPayload,
 } from '@/types/discussion';
 
 export async function fetchDiscussions(search?: string, category?: string): Promise<Discussion[]> {
@@ -44,5 +45,10 @@ export async function deleteDiscussionReply(replyId: number): Promise<Discussion
 
 export async function updateDiscussionStatus(discussionId: number, status: 'open' | 'closed'): Promise<DiscussionDetail> {
   const response = await api.patch(`/discussions/${discussionId}/status`, { status });
+  return response.data;
+}
+
+export async function markBestAnswer(replyId: number, isBestAnswer: boolean): Promise<DiscussionDetail> {
+  const response = await api.patch(`/replies/${replyId}/best-answer`, { is_best_answer: isBestAnswer });
   return response.data;
 }

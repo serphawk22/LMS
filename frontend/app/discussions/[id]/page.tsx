@@ -11,12 +11,13 @@ import {
   fetchDiscussion,
   updateDiscussionReply,
   updateDiscussionStatus,
+  markBestAnswer,
 } from '@/services/discussions';
 import type { DiscussionDetail, DiscussionReply } from '@/types/discussion';
 import type { UserProfile } from '@/types/auth';
 
 export default function DiscussionDetailPage() {
-  const { authenticated, initialized } = useAuth();
+  const { authenticated, initialized, role } = useAuth();
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const discussionId = Number(params.id);
@@ -147,6 +148,20 @@ export default function DiscussionDetailPage() {
     }
   };
 
+  const handleMarkBestAnswer = async (reply: DiscussionReply) => {
+    setSubmitting(true);
+    setError('');
+    try {
+      const updated = await markBestAnswer(reply.id, !reply.is_best_answer);
+      setDiscussion(updated);
+    } catch (err) {
+      console.error(err);
+      setError('Unable to mark best answer right now.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--bg-color)]">
       <ModernHeader
@@ -211,6 +226,11 @@ export default function DiscussionDetailPage() {
                     <div className="grid gap-2 text-sm text-slate-500 sm:grid-cols-3">
                       <p>
                         <span className="font-medium text-slate-700">Author:</span> {discussion.author.full_name || discussion.author.email}
+                        {discussion.author.role === 'instructor' && (
+                          <span className="ml-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-amber-700">
+                            Instructor
+                          </span>
+                        )}
                       </p>
                       <p>
                         <span className="font-medium text-slate-700">Date:</span> {new Date(discussion.created_at).toLocaleString()}
@@ -249,37 +269,61 @@ export default function DiscussionDetailPage() {
                     </div>
                   ) : (
                     discussion.replies.map((reply) => (
-                      <article key={reply.id} className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                      <article key={reply.id} className={`rounded-[24px] border shadow-sm p-5 ${reply.is_best_answer ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-white'}`}>
+                        {reply.is_best_answer && (
+                          <div className="mb-3 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-green-700">
+                            ✓ Best Answer
+                          </div>
+                        )}
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div>
-                            <h3 className="text-sm font-semibold text-slate-900">{reply.author.full_name || reply.author.email}</h3>
+                            <h3 className="text-sm font-semibold text-slate-900">
+                              {reply.author.full_name || reply.author.email}
+                              {reply.author.role === 'instructor' && (
+                                <span className="ml-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-amber-700">
+                                  Instructor
+                                </span>
+                              )}
+                            </h3>
                             <p className="text-xs text-slate-500">{new Date(reply.created_at).toLocaleString()}</p>
                           </div>
-                          {(reply.can_edit || reply.can_delete) ? (
-                            <div className="flex items-center gap-2">
-                              {reply.can_edit ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingReplyId(reply.id);
-                                    setEditingMessage(reply.message);
-                                  }}
-                                  className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                                >
-                                  Edit
-                                </button>
-                              ) : null}
-                              {reply.can_delete ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleReplyDelete(reply)}
-                                  className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
-                                >
-                                  Delete
-                                </button>
-                              ) : null}
-                            </div>
-                          ) : null}
+                          <div className="flex items-center gap-2">
+                            {reply.can_mark_best_answer ? (
+                              <button
+                                type="button"
+                                onClick={() => handleMarkBestAnswer(reply)}
+                                disabled={submitting}
+                                className={`rounded-xl px-3 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                  reply.is_best_answer
+                                    ? 'border border-green-200 bg-green-50 text-green-700 hover:bg-green-100'
+                                    : 'border border-slate-200 text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                {reply.is_best_answer ? '✓ Best Answer' : 'Mark Best Answer'}
+                              </button>
+                            ) : null}
+                            {reply.can_edit ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingReplyId(reply.id);
+                                  setEditingMessage(reply.message);
+                                }}
+                                className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                              >
+                                Edit
+                              </button>
+                            ) : null}
+                            {reply.can_delete ? (
+                              <button
+                                type="button"
+                                onClick={() => handleReplyDelete(reply)}
+                                className="rounded-xl border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-600 transition hover:bg-rose-50"
+                              >
+                                Delete
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
 
                         {editingReplyId === reply.id ? (

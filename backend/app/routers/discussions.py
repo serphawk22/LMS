@@ -21,6 +21,31 @@ def _get_organization_for_tenant(db: Session, tenant_id: str, current_user: User
     return organization
 
 
+def _normalized_role(user: User) -> str:
+    return (user.role_name or "").strip().lower().replace(" ", "_")
+
+
+def _check_can_create_discussion(user: User):
+    """Only students can create discussions."""
+    role = _normalized_role(user)
+    if role not in ["student", ""]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only students can create discussions.",
+        )
+
+
+def _check_can_reply(user: User):
+    """Both students and instructors can reply to discussions."""
+    role = _normalized_role(user)
+    allowed_roles = {"student", "instructor", ""}
+    if role not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to reply.",
+        )
+
+
 @router.get("/discussions", response_model=list[schemas.DiscussionRead])
 def list_discussions(
     search: str | None = Query(default=None),
@@ -55,6 +80,7 @@ def create_discussion(
     current_user: User = Depends(get_current_active_user),
 ):
     _get_organization_for_tenant(db, tenant_id, current_user)
+    _check_can_create_discussion(current_user)
     return discussion_service.create_discussion(
         db,
         current_user,
@@ -73,6 +99,7 @@ def add_reply(
     current_user: User = Depends(get_current_active_user),
 ):
     _get_organization_for_tenant(db, tenant_id, current_user)
+    _check_can_reply(current_user)
     discussion = discussion_service.get_discussion_or_404(db, discussion_id, current_user.organization_id)
     if not discussion:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Discussion not found.")
@@ -133,6 +160,26 @@ def update_discussion_status(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Discussion not found.")
     try:
         return discussion_service.update_discussion_status(db, current_user, discussion, status=payload.status)
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.patch("/replies/{reply_id}/best-answer", response_model=schemas.DiscussionDetailRead)
+def mark_best_answer(
+    reply_id: int,
+    payload: schemas.MarkBestAnswerUpdate,
+    tenant_id: str = Depends(get_tenant),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    _get_organization_for_tenant(db, tenant_id, current_user)
+    reply = discussion_service.get_reply_or_404(db, reply_id, current_user.organization_id)
+    if not reply:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Reply not found.")
+    try:
+        return discussion_service.mark_best_answer(db, current_user, reply, is_best=payload.is_best_answer)
     except PermissionError as exc:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
     except ValueError as exc:

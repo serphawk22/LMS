@@ -912,6 +912,7 @@ class DiscussionReply(Base, TimestampMixin, SoftDeleteMixin, OrganizationMixin):
     discussion_id = Column(Integer, ForeignKey("discussions.id", ondelete="CASCADE"), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     message = Column(Text, nullable=False)
+    is_best_answer = Column(Boolean, nullable=False, default=False, server_default="false")
 
     discussion = relationship("Discussion", back_populates="replies")
     user = relationship("User")
