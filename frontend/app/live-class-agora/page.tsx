@@ -126,9 +126,9 @@ export default function AgoraLiveClassPage() {
       console.log('Joined channel successfully, uid:', uid);
 
       // Create microphone and camera tracks
-      const [videoTrack, audioTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-      videoTrackRef.current = videoTrack;
+      const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
       audioTrackRef.current = audioTrack;
+      videoTrackRef.current = videoTrack;
 
       // Play local video
       if (localVideoRef.current) {

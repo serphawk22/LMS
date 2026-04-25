@@ -65,9 +65,9 @@ export default function SimpleLiveClassPage() {
       setIsJoined(true);
 
       // Create local tracks
-      const [videoTrack, audioTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-      videoTrackRef.current = videoTrack;
+      const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
       audioTrackRef.current = audioTrack;
+      videoTrackRef.current = videoTrack;
 
       // Play local video
       if (localVideoRef.current) {
