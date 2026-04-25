@@ -38,7 +38,7 @@ export default function AgoraLiveClassPage() {
   const classId = params?.id as string;
   
   // Get role from query param only - no auth required
-  const queryRole = searchParams.get('role') as UserRole | null;
+  const queryRole = searchParams?.get('role') as UserRole | null;
   const userRole: UserRole = queryRole || 'student';
   
   const [isJoined, setIsJoined] = useState(false);
@@ -225,9 +225,9 @@ export default function AgoraLiveClassPage() {
       if (userRole === 'instructor') {
         // Instructor: create and publish tracks
         console.log('Creating tracks as instructor...');
-        const [videoTrack, audioTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
-        videoTrackRef.current = videoTrack;
+        const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
         audioTrackRef.current = audioTrack;
+        videoTrackRef.current = videoTrack;
 
         // Play local video
         if (localVideoRef.current) {
@@ -325,7 +325,7 @@ export default function AgoraLiveClassPage() {
       console.log('Starting screen share...');
       
       // Create screen video track using AgoraRTC
-      const screenTrack = await AgoraRTC.createScreenVideoTrack({
+      const screenTrackResult = await AgoraRTC.createScreenVideoTrack({
         optimizationMode: 'detail',
         encoderConfig: {
           width: 1920,
@@ -335,6 +335,8 @@ export default function AgoraLiveClassPage() {
           bitrateMax: 2000,
         },
       });
+
+      const screenTrack = Array.isArray(screenTrackResult) ? screenTrackResult[0] : screenTrackResult;
 
       // Unpublish camera video first (if publishing)
       if (videoTrackRef.current && userRole === 'instructor') {
