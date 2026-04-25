@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { getStudentLiveClasses, markAttendance, LiveClassForStudent } from '@/services/live_classes';
 
 export default function UpcomingLiveClasses() {
+  const router = useRouter();
   const [liveClasses, setLiveClasses] = useState<LiveClassForStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +39,8 @@ export default function UpcomingLiveClasses() {
   const handleJoinClass = async (liveClass: LiveClassForStudent) => {
     try {
       setJoiningClassId(liveClass.id);
-      // Navigate to live class page
-      window.location.href = `/live-class/${liveClass.id}`;
+      // Navigate to live class page using Next.js router
+      router.push(`/live-class/${liveClass.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to join class');
       console.error('Error joining class:', err);

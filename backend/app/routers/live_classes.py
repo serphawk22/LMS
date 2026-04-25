@@ -1,6 +1,7 @@
 from typing import List
 from collections import defaultdict
 import asyncio
+import json
 from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, WebSocket, WebSocketDisconnect
@@ -87,10 +88,16 @@ async def live_class_websocket(
     db: Session = Depends(get_db),
 ):
     """WebSocket endpoint for live class streaming"""
+    print(f"WebSocket connection attempt for class_id: {class_id}")
+    print(f"Token received: {token[:20]}..." if token and len(token) > 20 else f"Token: {token}")
+    print(f"Tenant ID from query: {tenant_id}, alias: {tenant_id_alias}")
+    
     try:
         # Verify user authentication
         from app.core.security import decode_token
         payload = decode_token(token)
+        print(f"Token payload: {payload}")
+        
         if payload.get("type") != "access":
             await websocket.close(code=4001, reason="Invalid token type")
             return
@@ -100,14 +107,22 @@ async def live_class_websocket(
             await websocket.close(code=4001, reason="Invalid token")
             return
 
+        print(f"User authenticated: {current_user.email}, org_id: {current_user.organization_id}")
+
         # Determine tenant / organization from query params or token payload
         resolved_tenant_id = tenant_id or tenant_id_alias or str(payload.get("tenant_id")) if payload.get("tenant_id") else None
+        print(f"Resolved tenant ID: {resolved_tenant_id}")
+        
         if not resolved_tenant_id:
             await websocket.close(code=4002, reason="Missing tenant information")
             return
 
         organization = auth_service.get_organization_by_tenant(db, resolved_tenant_id)
-        if not organization or current_user.organization_id != organization.id:
+        if not organization:
+            await websocket.close(code=4002, reason="Organization not found")
+            return
+            
+        if current_user.organization_id != organization.id:
             await websocket.close(code=4002, reason="Organization access denied")
             return
 
@@ -120,33 +135,62 @@ async def live_class_websocket(
         # Determine user type
         user_type = "instructor" if live_class.instructor_id == current_user.id else "student"
         user_name = current_user.full_name or current_user.email or "Unknown Student"
+        
+        print(f"User type: {user_type}, class: {live_class.title}")
 
         # Connect to WebSocket and notify instructors of student join/leave
         await manager.connect(websocket, class_id, user_type, user_name)
         await manager.broadcast_student_list(class_id)
+        
+        print(f"WebSocket connected successfully for {user_type}")
 
         try:
+            # Keep the connection alive - handle messages and timeouts gracefully
             while True:
-                # Receive message from client
-                data = await websocket.receive_json()
-
-                # Only instructors can send video chunks
-                if user_type == "instructor" and data.get("type") == "video_chunk":
-                    # Broadcast to all students in this class
-                    await manager.broadcast_to_students(class_id, {
-                        "type": "video_chunk",
-                        "data": data.get("data"),
-                        "timestamp": data.get("timestamp")
-                    })
+                try:
+                    # Use receive_json instead of receive_text for structured messages
+                    data = await websocket.receive_json()
+                    
+                    # Handle instructor sending video chunks
+                    if user_type == "instructor" and data.get("type") == "video_chunk":
+                        # Broadcast video chunk to all students in this class
+                        await manager.broadcast_to_students(class_id, {
+                            "type": "video_chunk",
+                            "data": data.get("data"),
+                            "timestamp": data.get("timestamp")
+                        })
+                        
+                except asyncio.TimeoutError:
+                    # Send a ping to keep the connection alive
+                    try:
+                        await websocket.send_json({"type": "ping"})
+                    except:
+                        break
+                except WebSocketDisconnect:
+                    # Normal disconnect
+                    break
+                except Exception as e:
+                    # Log but don't break the connection for other errors
+                    print(f"WebSocket message handling error: {e}")
+                    continue
 
         except WebSocketDisconnect:
+            print(f"WebSocket disconnected for class_id: {class_id}")
+        except Exception as e:
+            print(f"WebSocket error in message loop: {e}")
+        finally:
             manager.disconnect(websocket, class_id)
-            await manager.broadcast_student_list(class_id)
+            try:
+                await manager.broadcast_student_list(class_id)
+            except:
+                pass
 
     except Exception as e:
         print(f"WebSocket error: {e}")
+        import traceback
+        traceback.print_exc()
         try:
-            await websocket.close(code=4000, reason="Internal server error")
+            await websocket.close(code=4000, reason=str(e))
         except:
             pass
 

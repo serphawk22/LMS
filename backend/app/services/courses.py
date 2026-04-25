@@ -96,6 +96,9 @@ def get_course_by_slug(db: Session, slug: str, organization_id: int, exclude_cou
 
 
 def create_course(db: Session, organization, creator: User, payload: CourseCreate) -> Course:
+    # Ensure User is available in this scope
+    from app.models import User as UserModel
+    
     if get_course_by_slug(db, payload.slug, organization.id):
         raise ValueError("A course with this slug already exists for the organization.")
     category = None
@@ -121,8 +124,8 @@ def create_course(db: Session, organization, creator: User, payload: CourseCreat
     instructors = []
     if payload.instructor_ids:
         instructors = (
-            db.query(User)
-            .filter(User.organization_id == organization.id, User.id.in_(payload.instructor_ids), User.is_deleted == False)
+            db.query(UserModel)
+            .filter(UserModel.organization_id == organization.id, UserModel.id.in_(payload.instructor_ids), UserModel.is_deleted == False)
             .all()
         )
         if len(instructors) != len(set(payload.instructor_ids)):
@@ -184,15 +187,15 @@ def create_course(db: Session, organization, creator: User, payload: CourseCreat
 
     try:
         from app.services.dashboard import create_notifications_for_users
-        from app.models import User
+        from app.models import User as UserModel
 
         if course.published:
             user_ids = [
                 user.id
-                for user in db.query(User)
+                for user in db.query(UserModel)
                 .filter(
-                    User.organization_id == organization.id,
-                    User.is_deleted == False,
+                    UserModel.organization_id == organization.id,
+                    UserModel.is_deleted == False,
                 )
                 .all()
             ]
@@ -806,6 +809,8 @@ def get_live_class_by_id(db: Session, live_class_id: int, organization_id: int) 
 
 
 def create_live_class(db: Session, organization, payload: LiveSessionCreate) -> LiveClass:
+    from app.models import User as UserModel
+    
     course = get_course_by_id(db, payload.course_id, organization.id)
     if not course:
         raise ValueError("Course not found for the organization.")
@@ -813,8 +818,8 @@ def create_live_class(db: Session, organization, payload: LiveSessionCreate) -> 
     instructor = None
     if payload.instructor_id is not None:
         instructor = (
-            db.query(User)
-            .filter(User.id == payload.instructor_id, User.organization_id == organization.id, User.is_deleted == False)
+            db.query(UserModel)
+            .filter(UserModel.id == payload.instructor_id, UserModel.organization_id == organization.id, UserModel.is_deleted == False)
             .one_or_none()
         )
         if not instructor:
@@ -891,8 +896,8 @@ def update_live_class(db: Session, live_class: LiveClass, payload: LiveSessionUp
         live_class.duration_minutes = payload.duration_minutes
     if payload.instructor_id is not None:
         instructor = (
-            db.query(User)
-            .filter(User.id == payload.instructor_id, User.organization_id == live_class.organization_id, User.is_deleted == False)
+            db.query(UserModel)
+            .filter(UserModel.id == payload.instructor_id, UserModel.organization_id == live_class.organization_id, UserModel.is_deleted == False)
             .one_or_none()
         )
         if not instructor:
