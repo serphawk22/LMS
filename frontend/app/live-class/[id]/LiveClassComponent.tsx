@@ -1,13 +1,14 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from "agora-rtc-sdk-ng";
-import { useRouter } from "next/router";
-
+import { useParams } from "next/navigation";
 const APP_ID = "4c80630e8a2142e0afdfa1143528891a";
 const TOKEN = null; // Use null for testing with a temporary token
 
 const LiveClassComponent = () => {
-  const router = useRouter();
-  const { id: classId } = router.query;
+  const params = useParams();
+  const classId = params?.id;
 
   const [client, setClient] = useState<IAgoraRTCClient | null>(null);
   const [localTracks, setLocalTracks] = useState<{
