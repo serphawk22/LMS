@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AgoraRTC, { IAgoraRTCClient, ICameraVideoTrack, IMicrophoneAudioTrack } from "agora-rtc-sdk-ng";
 import { useParams } from "next/navigation";
+
 const APP_ID = "4c80630e8a2142e0afdfa1143528891a";
 const TOKEN = null; // Use null for testing with a temporary token
 
-const LiveClassComponent = () => {
+export default function LiveClassComponent() {
   const params = useParams();
   const classId = params?.id;
 
@@ -84,6 +85,4 @@ const LiveClassComponent = () => {
       <div id="remote-videos" style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginTop: "20px" }}></div>
     </div>
   );
-};
-
-export default LiveClassComponent;
+}
