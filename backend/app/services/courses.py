@@ -538,7 +538,11 @@ def soft_delete_module(db: Session, module: Module) -> Module:
 
 
 def _validate_lesson_content_payload(content_type: LessonContentType, content_payload: Any) -> dict | None:
+    # Allow content_payload to be None for text/html types where content can be in the 'content' field
     if content_payload is None:
+        # For text and html types, content can be provided via the 'content' field instead
+        if content_type in [LessonContentType.text, LessonContentType.html]:
+            return None
         raise ValueError(f"content_payload is required for lesson type '{content_type.value}'.")
 
     if isinstance(content_payload, BaseModel):
@@ -556,11 +560,13 @@ def _validate_lesson_content_payload(content_type: LessonContentType, content_pa
         if "vimeo_id" not in payload_data or not payload_data["vimeo_id"]:
             raise ValueError("Invalid content_payload for lesson type 'vimeo_embed'")
     elif content_type == LessonContentType.text:
-        if "body" not in payload_data or not payload_data["body"]:
-            raise ValueError("Invalid content_payload for lesson type 'text'")
+        # Text type can have content in payload OR in the 'content' field
+        if not payload_data.get("body"):
+            return None  # Allow - content can be in 'content' field
     elif content_type == LessonContentType.html:
-        if "html" not in payload_data or not payload_data["html"]:
-            raise ValueError("Invalid content_payload for lesson type 'html'")
+        # HTML type can have content in payload OR in the 'content' field
+        if not payload_data.get("html"):
+            return None  # Allow - content can be in 'content' field
     elif content_type in [
         LessonContentType.video_upload,
         LessonContentType.pdf,
@@ -569,10 +575,18 @@ def _validate_lesson_content_payload(content_type: LessonContentType, content_pa
         LessonContentType.audio,
         LessonContentType.scorm,
     ]:
-        if "file_url" not in payload_data and "package_url" not in payload_data:
+        # Allow: file_url OR package_url OR resources (study materials like Google Drive links)
+        # This allows lessons with only study materials (no video/file)
+        has_file = "file_url" in payload_data and payload_data.get("file_url")
+        has_resources = "resources" in payload_data and isinstance(payload_data["resources"], list) and len(payload_data["resources"]) > 0
+        if not has_file and not has_resources:
             raise ValueError(f"Invalid content_payload for lesson type '{content_type.value}'")
     elif content_type in [LessonContentType.external_link, LessonContentType.live_link]:
-        if "url" not in payload_data or not payload_data["url"]:
+        # Allow: url OR resources (study materials like Google Drive links)
+        # Allow lessons with only resources (no url) - e.g., Google Drive links only
+        has_url = "url" in payload_data and payload_data.get("url")
+        has_resources = "resources" in payload_data and isinstance(payload_data["resources"], list) and len(payload_data["resources"]) > 0
+        if not has_url and not has_resources:
             raise ValueError(f"Invalid content_payload for lesson type '{content_type.value}'")
     elif content_type == LessonContentType.iframe_embed:
         if "iframe_url" not in payload_data or not payload_data["iframe_url"]:

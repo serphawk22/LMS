@@ -374,9 +374,12 @@ export default function InstructorPage() {
 
   const getLessonContentPayload = (): Record<string, unknown> => {
     const value = lessonContentUrl.trim();
+    const hasVideo = videoUrl.trim() || value.trim();
+    
     switch (lessonContentType) {
       case 'video_upload':
-        return { file_url: videoUrl || value };
+        // Only include file_url if there's actually a video URL
+        return hasVideo ? { file_url: videoUrl || value } : {};
       case 'audio':
       case 'pdf':
       case 'ppt':
@@ -446,20 +449,18 @@ export default function InstructorPage() {
 
   const handleAddLesson = async () => {
     if (!lessonTitle.trim() || !lessonModuleId || !structureCourseId) return;
-    if (isContentSourceRequired && !lessonContentUrl.trim() && !(lessonContentType === 'video_upload' && videoUrl.trim()) && !(['audio', 'pdf', 'ppt', 'doc'].includes(lessonContentType) && lessonFile)) {
-      setError('Please enter a source URL or ID for the lesson content, or upload a file for file-based content types.');
-      return;
-    }
 
-    if (lessonContentType === 'video_upload' && !videoUrl.trim() && !lessonFile) {
-      setError('Please upload a video file.');
-      return;
-    }
-
+    // Validation: Allow if (video/file) OR (at least one study material)
     const pendingMaterial = newLessonMaterial.trim();
     const pendingMaterials = pendingMaterial ? [pendingMaterial] : [];
     const allMaterials = [...lessonMaterials, ...pendingMaterials];
     const validMaterials = allMaterials.map((link) => link.trim()).filter(Boolean);
+    const hasVideo = lessonContentUrl.trim() || videoUrl.trim() || lessonFile;
+    const hasMaterial = validMaterials.length > 0;
+    if (!hasVideo && !hasMaterial) {
+      setError('Please provide a video URL, upload a video file, or add at least one study material.');
+      return;
+    }
     const invalidMaterial = validMaterials.find((link) => !isValidUrl(link));
     if (invalidMaterial) {
       setError('One or more study material links are not valid URLs.');
@@ -468,10 +469,14 @@ export default function InstructorPage() {
 
     let contentPayload = getLessonContentPayload();
 
+    // For video_upload: allow either videoUrl OR lessonFile (not both required)
     if (lessonContentType === 'video_upload' && lessonFile && !videoUrl) {
-      // Wait for upload to complete
+      // Wait for upload to complete before proceeding
       setError('Please wait for the video upload to complete.');
       return;
+    } else if (lessonContentType === 'video_upload' && videoUrl && lessonFile) {
+      // Both provided - use videoUrl (already uploaded), ignore the new file selection
+      // This is fine - user can update later with a new file
     } else if (['audio', 'pdf', 'ppt', 'doc'].includes(lessonContentType) && lessonFile) {
       try {
         const uploadResult = await uploadFile(lessonFile);
