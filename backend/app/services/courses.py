@@ -97,7 +97,7 @@ def get_course_by_slug(db: Session, slug: str, organization_id: int, exclude_cou
 
 def create_course(db: Session, organization, creator: User, payload: CourseCreate) -> Course:
     # Ensure User is available in this scope
-    from app.models import User as UserModel
+    from app.models.lms_schema import User as UserModel
     
     if get_course_by_slug(db, payload.slug, organization.id):
         raise ValueError("A course with this slug already exists for the organization.")
@@ -187,7 +187,6 @@ def create_course(db: Session, organization, creator: User, payload: CourseCreat
 
     try:
         from app.services.dashboard import create_notifications_for_users
-        from app.models import User as UserModel
 
         if course.published:
             user_ids = [
