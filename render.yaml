@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: lms-backend
+    env: python
+    pythonVersion: "3.12"
+    buildCommand: cd backend && pip install -r requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: POETRY_VERSION
+        value: "off"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
