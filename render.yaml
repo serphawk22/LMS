@@ -3,11 +3,9 @@ services:
     name: lms-backend
     env: python
     pythonVersion: "3.12"
-    buildCommand: cd backend && pip install -r requirements.txt
+    buildCommand: cd backend && pip install pip --upgrade && pip install -r requirements.txt
     startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
-      - key: POETRY_VERSION
-        value: "off"
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
