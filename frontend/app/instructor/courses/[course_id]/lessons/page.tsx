@@ -226,12 +226,20 @@ export default function LessonManagementPage() {
   };
 
   const handleAddLesson = async () => {
-    if (!lessonTitle.trim() || !videoUrl.trim()) {
-      setError('Please enter lesson title and upload a video.');
+    // Validation: Allow if title exists
+    if (!lessonTitle.trim()) {
+      setError('Please enter a lesson title.');
       return;
     }
 
+    // Allow if (video/file) OR (at least one study material)
     const validResources = getValidMaterials(studyMaterials);
+    const hasVideo = videoUrl.trim() || lessonFile;
+    const hasMaterial = validResources.length > 0;
+    if (!hasVideo && !hasMaterial) {
+      setError('Please provide a video URL, upload a video file, or add at least one study material.');
+      return;
+    }
 
     setSaving(true);
     setError('');
@@ -243,16 +251,19 @@ export default function LessonManagementPage() {
       }
 
       // Use the proper service function instead of direct fetch
+      // Allow either videoUrl OR lessonFile (not both required)
+      const contentPayload: any = {
+        file_url: videoUrl,
+        resources: validResources.length > 0 ? validResources : undefined,
+      };
+
       await createLesson({
         course_id: courseId,
         module_id: moduleId,
         title: lessonTitle.trim(),
         content: lessonDescription.trim() || '',
         content_type: 'video_upload',
-        content_payload: {
-          file_url: videoUrl,
-          resources: validResources.length > 0 ? validResources : undefined,
-        },
+        content_payload: contentPayload,
         duration_minutes: 0,
       });
 

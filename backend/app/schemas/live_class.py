@@ -93,7 +93,7 @@ class LiveClassUpdateRequest(BaseModel):
     description: str | None = None
     start_time: str | datetime | None = Field(None, description="Start time in ISO or DD-MM-YYYY HH:MM format")
     duration: int | None = Field(None, ge=5, le=480, description="Duration in minutes")
-    # Removed platform and meeting_link fields for internal-only system
+    provider_join_url: str | None = Field(None, max_length=512, description="Metered or other video join URL")
 
     model_config = ConfigDict(populate_by_name=True, extra="ignore")
 

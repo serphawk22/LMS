@@ -428,7 +428,8 @@ def update_live_class(
         mapped_data['scheduled_at'] = request_data['start_time']
     if 'duration' in request_data:
         mapped_data['duration_minutes'] = request_data['duration']
-    # Removed platform and meeting_link mapping for internal-only system
+    if 'provider_join_url' in request_data:
+        mapped_data['provider_join_url'] = request_data['provider_join_url']
 
     try:
         update_data = LiveClassUpdate(**mapped_data)

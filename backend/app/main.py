@@ -10,7 +10,7 @@ from app.database import init_db, test_db_connection
 from app.dependencies import get_current_active_user, get_db, get_tenant
 from app.middleware.role import RoleMiddleware
 from app.middleware.tenant import TenantMiddleware
-from app.routers import admin, auth, billing, certificates, courses, dashboard, files, organizations, quizzes, tenants, assignments, gamification, chatbot, transcription, student, announcements, live_classes, lessons, support, calendar, discussions
+from app.routers import admin, auth, billing, certificates, courses, dashboard, files, organizations, quizzes, tenants, assignments, gamification, chatbot, transcription, student, announcements, live_classes, lessons, support, calendar, discussions, metered
 from app.services import auth as auth_service, dashboard as dashboard_service, organizations as organization_service
 
 logger = logging.getLogger(__name__)
@@ -170,6 +170,7 @@ app.include_router(student.router, prefix="/api/v1/student", tags=["student"])
 app.include_router(announcements.router, prefix="/api/v1/announcements", tags=["announcements"])
 app.include_router(live_classes.router, prefix="/api/v1/live-classes", tags=["live-classes"])
 app.include_router(calendar.router, prefix="/api/v1/calendar", tags=["calendar"])
+app.include_router(metered.router, prefix="/api/v1/metered", tags=["metered"])
 
 # Mount uploads directory for serving static files
 uploads_dir = Path(__file__).resolve().parent.parent / "uploads"

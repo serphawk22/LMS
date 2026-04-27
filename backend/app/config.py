@@ -95,6 +95,14 @@ class Settings(BaseSettings):
         alias="OPENAI_API_KEY",
         validation_alias=AliasChoices("OPENAI_API_KEY"),
     )
+    metered_domain: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("METERED_DOMAIN"),
+    )
+    metered_secret_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("METERED_SECRET_KEY"),
+    )
 
     @field_validator("debug", mode="before")
     @classmethod

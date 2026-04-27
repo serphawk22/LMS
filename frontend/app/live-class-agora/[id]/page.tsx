@@ -7,7 +7,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 
 // Agora configuration
-const AGORA_APP_ID = '4c80630e8a2142e0afdfa1143528891a';
+const AGORA_APP_ID = process.env.NEXT_PUBLIC_AGORA_APP_ID || "";
 
 // Define types for user tracks
 interface UserTrack {

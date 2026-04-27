@@ -755,16 +755,12 @@ export default function CourseDetailsPage() {
                                       {isLive ? 'Live now' : 'Scheduled'}
                                     </span>
                                     <a
-                                      href={live.provider_join_url ?? '#'}
-                                      target="_blank"
-                                      rel="noreferrer"
+                                      href={`/live-class/${live.id}`}
                                       className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold transition ${
-                                        isLive && live.provider_join_url ? 'bg-sky-600 text-white hover:bg-sky-700' : 'cursor-not-allowed bg-slate-100 text-slate-500'
+                                        isLive ? 'bg-sky-600 text-white hover:bg-sky-700' : 'cursor-not-allowed bg-slate-100 text-slate-500'
                                       }`}
                                       onClick={(event) => {
-                                        if (!isLive || !live.provider_join_url) {
-                                          event.preventDefault();
-                                        }
+                                        if (!isLive) event.preventDefault();
                                       }}
                                     >
                                       Join
