@@ -61,7 +61,7 @@ export default function LiveClassDetailPage({ params }: LiveClassDetailProps) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center py-12">
-          <div className="text-gray-500">Loading...</div>
+          <div className="text-[var(--muted-color)]">Loading...</div>
         </div>
       </div>
     );

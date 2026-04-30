@@ -38,46 +38,46 @@ export default function QuizzesPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
+    <main className="min-h-screen bg-[var(--surface-strong)] px-6 py-16 text-[var(--text-color)]">
       <div className="w-full space-y-8">
-        <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
+        <section className="rounded-3xl bg-[var(--card-color)] p-10 shadow-sm border border-[var(--border-color)]">
           <div className="space-y-4">
-            <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Instructor quizzes</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-[var(--primary-color)]">Instructor quizzes</p>
             <h1 className="text-3xl font-semibold">Manage quizzes</h1>
-            <p className="text-slate-600">Create, edit, and launch quizzes for your students.</p>
+            <p className="text-[var(--muted-color)]">Create, edit, and launch quizzes for your students.</p>
           </div>
 
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            <Link href="/dashboard/instructor/create-quiz" className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-900 shadow-sm hover:border-sky-300 hover:bg-slate-100">
+            <Link href="/dashboard/instructor/create-quiz" className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] p-6 text-center text-[var(--text-color)] shadow-sm hover:border-[var(--primary-color)] hover:bg-[var(--surface-strong)]/80">
               <h2 className="text-xl font-semibold">Create quiz</h2>
-              <p className="mt-2 text-sm text-slate-600">Build a new quiz from scratch with questions and grading.</p>
+              <p className="mt-2 text-sm text-[var(--muted-color)]">Build a new quiz from scratch with questions and grading.</p>
             </Link>
-            <Link href="/quizzes/manage" className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-900 shadow-sm hover:border-sky-300 hover:bg-slate-100">
+            <Link href="/quizzes/manage" className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] p-6 text-center text-[var(--text-color)] shadow-sm hover:border-[var(--primary-color)] hover:bg-[var(--surface-strong)]/80">
               <h2 className="text-xl font-semibold">Manage quizzes</h2>
-              <p className="mt-2 text-sm text-slate-600">Edit existing quizzes and review quiz settings.</p>
+              <p className="mt-2 text-sm text-[var(--muted-color)]">Edit existing quizzes and review quiz settings.</p>
             </Link>
           </div>
         </section>
 
-        <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
+        <section className="rounded-3xl bg-[var(--card-color)] p-10 shadow-sm border border-[var(--border-color)]">
           <div className="mb-6 flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Quiz results</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-[var(--primary-color)]">Quiz results</p>
               <h2 className="text-3xl font-semibold">Student scores</h2>
-              <p className="mt-2 text-slate-600">Review recent quiz submissions across your courses.</p>
+              <p className="mt-2 text-[var(--muted-color)]">Review recent quiz submissions across your courses.</p>
             </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+            <span className="rounded-full bg-[var(--surface-strong)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-color)]">
               {quizResults.length} recent submissions
             </span>
           </div>
 
           {loading ? (
-            <p className="text-sm text-slate-600">Loading quiz results…</p>
+            <p className="text-sm text-[var(--muted-color)]">Loading quiz results…</p>
           ) : error ? (
             <p className="text-sm text-rose-600">{error}</p>
           ) : quizResults.length ? (
-            <div className="overflow-hidden rounded-3xl border border-slate-200">
-              <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+            <div className="overflow-hidden rounded-3xl border border-[var(--border-color)]">
+              <table className="min-w-full divide-y divide-[var(--border-color)] text-left text-sm">
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-6 py-4 font-semibold text-slate-700">Student</th>

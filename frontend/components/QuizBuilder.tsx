@@ -170,9 +170,9 @@ export default function QuizBuilder() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-6 py-12">
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <h1 className="text-3xl font-semibold text-slate-900">Create New Quiz</h1>
-        <p className="mt-2 text-slate-600">Build a quiz with questions, timer, attempt limits, and grading options.</p>
+      <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-color)] p-8 shadow-sm">
+        <h1 className="text-3xl font-semibold text-[var(--text-color)]">Create New Quiz</h1>
+        <p className="mt-2 text-[var(--muted-color)]">Build a quiz with questions, timer, attempt limits, and grading options.</p>
       </div>
 
       {error ? <div className="rounded-3xl border border-red-200 bg-red-50 p-6 text-red-700">{error}</div> : null}
@@ -180,73 +180,73 @@ export default function QuizBuilder() {
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-slate-900">Course ID</label>
+          <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-color)] p-6 shadow-sm">
+            <label className="block text-sm font-semibold text-[var(--text-color)]">Course ID</label>
             <input
               type="number"
               value={form.course_id}
               onChange={(event) => handleFieldChange('course_id', Number(event.target.value))}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
             />
 
-            <label className="mt-6 block text-sm font-semibold text-slate-900">Quiz title</label>
+            <label className="mt-6 block text-sm font-semibold text-[var(--text-color)]">Quiz title</label>
             <input
               type="text"
               value={form.title}
               onChange={(event) => handleFieldChange('title', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
               required
             />
 
-            <label className="mt-6 block text-sm font-semibold text-slate-900">Description</label>
+            <label className="mt-6 block text-sm font-semibold text-[var(--text-color)]">Description</label>
             <textarea
               value={form.description}
               onChange={(event) => handleFieldChange('description', event.target.value)}
               rows={4}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
             />
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <label className="block text-sm font-semibold text-slate-900">Passing score</label>
+          <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-color)] p-6 shadow-sm">
+            <label className="block text-sm font-semibold text-[var(--text-color)]">Passing score</label>
             <input
               type="number"
               value={form.passing_score}
               onChange={(event) => handleFieldChange('passing_score', Number(event.target.value))}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
             />
 
-            <label className="mt-6 block text-sm font-semibold text-slate-900">Pass percentage</label>
+            <label className="mt-6 block text-sm font-semibold text-[var(--text-color)]">Pass percentage</label>
             <input
               type="number"
               value={form.pass_percentage}
               onChange={(event) => handleFieldChange('pass_percentage', Number(event.target.value))}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
             />
 
-            <label className="mt-6 block text-sm font-semibold text-slate-900">Time limit (minutes)</label>
+            <label className="mt-6 block text-sm font-semibold text-[var(--text-color)]">Time limit (minutes)</label>
             <input
               type="number"
               value={form.time_limit_minutes}
               onChange={(event) => handleFieldChange('time_limit_minutes', Number(event.target.value))}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
             />
 
-            <label className="mt-6 block text-sm font-semibold text-slate-900">Due date</label>
+            <label className="mt-6 block text-sm font-semibold text-[var(--text-color)]">Due date</label>
             <input
               type="datetime-local"
               value={form.due_date ?? ''}
               onChange={(event) => handleFieldChange('due_date', event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="mt-2 w-full rounded-2xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm text-[var(--text-color)] focus:border-[var(--primary-color)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-color)]/20"
             />
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--card-color)] p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Quiz settings</h2>
-              <p className="text-sm text-slate-600">Control randomness, attempt limits, and grading mode.</p>
+              <h2 className="text-xl font-semibold text-[var(--text-color)]">Quiz settings</h2>
+              <p className="text-sm text-[var(--muted-color)]">Control randomness, attempt limits, and grading mode.</p>
             </div>
             <button
               type="button"

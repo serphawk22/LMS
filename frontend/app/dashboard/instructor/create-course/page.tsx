@@ -180,50 +180,50 @@ export default function CreateCoursePage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
+    <main className="min-h-screen bg-[var(--surface-strong)] px-6 py-16 text-[var(--text-color)]">
       <div className="w-full space-y-8">
-        <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
+        <section className="rounded-3xl bg-[var(--card-color)] p-10 shadow-sm border border-[var(--border-color)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Instructor</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-[var(--primary-color)]">Instructor</p>
               <h1 className="mt-3 text-3xl font-semibold">Create a new course</h1>
             </div>
             <Link
               href="/dashboard/instructor/upload-lessons"
-              className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex items-center rounded-full bg-[var(--text-color)] px-5 py-3 text-sm font-semibold text-[var(--bg-color)] transition hover:opacity-90"
             >
               Upload lessons later
             </Link>
           </div>
 
-          <p className="mt-4 text-slate-600">Build your course with video lessons and connect it to quizzes and assignments for learners.</p>
+          <p className="mt-4 text-[var(--muted-color)]">Build your course with video lessons and connect it to quizzes and assignments for learners.</p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-8">
             <div className="grid gap-6 lg:grid-cols-2">
               <label className="space-y-3">
-                <span className="text-sm font-semibold text-slate-700">Course title</span>
+                <span className="text-sm font-semibold text-[var(--text-color)]">Course title</span>
                 <input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder="Illustrate course goals"
-                  className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                  className="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm outline-none transition focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[var(--primary-color)]/20"
                   required
                 />
               </label>
               <label className="space-y-3">
-                <span className="text-sm font-semibold text-slate-700">Course slug</span>
+                <span className="text-sm font-semibold text-[var(--text-color)]">Course slug</span>
                 <input
                   value={slug}
                   onChange={(event) => setSlug(event.target.value)}
                   placeholder="auto-generated from title"
-                  className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                  className="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm outline-none transition focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[var(--primary-color)]/20"
                 />
               </label>
             </div>
 
             <div className="grid gap-6 lg:grid-cols-2">
               <label className="space-y-3">
-                <span className="text-sm font-semibold text-slate-700">Short description</span>
+                <span className="text-sm font-semibold text-[var(--text-color)]">Short description</span>
                 <input
                   value={shortDescription}
                   onChange={(event) => setShortDescription(event.target.value)}

@@ -172,39 +172,39 @@ export default function UploadLessonsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-16 text-slate-900">
+    <main className="min-h-screen bg-[var(--surface-strong)] px-6 py-16 text-[var(--text-color)]">
       <div className="w-full space-y-8">
-        <section className="rounded-3xl bg-white p-10 shadow-sm shadow-slate-200/40">
+        <section className="rounded-3xl bg-[var(--card-color)] p-10 shadow-sm border border-[var(--border-color)]">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Instructor</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-[var(--primary-color)]">Instructor</p>
               <h1 className="mt-3 text-3xl font-semibold">Upload video lessons</h1>
             </div>
             <Link
               href="/dashboard/instructor/create-course"
-              className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex items-center rounded-full bg-[var(--text-color)] px-5 py-3 text-sm font-semibold text-[var(--bg-color)] transition hover:opacity-90"
             >
               Create new course
             </Link>
           </div>
 
-          <p className="mt-4 text-slate-600">Select one of your courses and attach video lessons that students can watch after enrollment.</p>
+          <p className="mt-4 text-[var(--muted-color)]">Select one of your courses and attach video lessons that students can watch after enrollment.</p>
 
           {loadingCourses ? (
-            <div className="mt-8 rounded-3xl bg-slate-100 p-8 text-slate-600">Loading courses…</div>
+            <div className="mt-8 rounded-3xl bg-[var(--surface-strong)] p-8 text-[var(--muted-color)]">Loading courses…</div>
           ) : courses.length === 0 ? (
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-slate-50 p-8 text-slate-700">
+            <div className="mt-8 rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] p-8 text-[var(--text-color)]">
               No courses found. Create a course first and return to add lessons.
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="mt-8 space-y-8">
               <div className="grid gap-6 lg:grid-cols-2">
                 <label className="space-y-3">
-                  <span className="text-sm font-semibold text-slate-700">Choose course</span>
+                  <span className="text-sm font-semibold text-[var(--text-color)]">Choose course</span>
                   <select
                     value={selectedCourseId ?? ''}
                     onChange={handleCourseChange}
-                    className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                    className="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm outline-none transition focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[var(--primary-color)]/20"
                   >
                     {courses.map((course) => (
                       <option key={course.id} value={course.id}>
@@ -215,14 +215,14 @@ export default function UploadLessonsPage() {
                 </label>
 
                 <label className="space-y-3">
-                  <span className="text-sm font-semibold text-slate-700">Choose module</span>
+                  <span className="text-sm font-semibold text-[var(--text-color)]">Choose module</span>
                   <select
                     value={selectedModuleId === 'new' ? 'new' : selectedModuleId ?? 'new'}
                     onChange={(event) => {
                       const value = event.target.value;
                       setSelectedModuleId(value === 'new' ? 'new' : Number(value));
                     }}
-                    className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                    className="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm outline-none transition focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[var(--primary-color)]/20"
                   >
                     <option value="new">Create a new module</option>
                     {moduleOptions.map((module) => (
@@ -236,25 +236,25 @@ export default function UploadLessonsPage() {
 
               {selectedModuleId === 'new' ? (
                 <label className="space-y-3">
-                  <span className="text-sm font-semibold text-slate-700">New module title</span>
+                  <span className="text-sm font-semibold text-[var(--text-color)]">New module title</span>
                   <input
                     value={newModuleTitle}
                     onChange={(event) => setNewModuleTitle(event.target.value)}
-                    className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100"
+                    className="w-full rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] px-4 py-3 text-sm outline-none transition focus:border-[var(--primary-color)] focus:ring-2 focus:ring-[var(--primary-color)]/20"
                   />
                 </label>
               ) : null}
 
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+              <div className="rounded-3xl border border-[var(--border-color)] bg-[var(--surface-strong)] p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-900">Lesson builder</h2>
-                    <p className="text-sm text-slate-600">Add one or more video lessons for the selected course.</p>
+                    <h2 className="text-xl font-semibold text-[var(--text-color)]">Lesson builder</h2>
+                    <p className="text-sm text-[var(--muted-color)]">Add one or more video lessons for the selected course.</p>
                   </div>
                   <button
                     type="button"
                     onClick={handleAddLesson}
-                    className="inline-flex items-center rounded-full bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    className="inline-flex items-center rounded-full bg-[var(--text-color)] px-5 py-3 text-sm font-semibold text-[var(--bg-color)] transition hover:opacity-90"
                   >
                     Add lesson
                   </button>

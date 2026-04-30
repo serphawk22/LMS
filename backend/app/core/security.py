@@ -7,7 +7,8 @@ from passlib.context import CryptContext
 
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use argon2 to avoid compatibility issues on Python 3.14+
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
 
 def _generate_session_id() -> str:

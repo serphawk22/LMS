@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { fetchCurrentUser } from '@/services/auth';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const overviewCards = [
   { title: 'Total Courses', value: 12, icon: '📘', color: 'from-sky-500 to-indigo-500' },
@@ -33,6 +35,24 @@ export default function InstructorDashboardPage() {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Profile state
+  const [profile, setProfile] = useState<{ name: string; email: string; avatarUrl: string | null }>({ name: '', email: '', avatarUrl: null });
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // Fetch current user on mount
+  useEffect(() => {
+    fetchCurrentUser().then((user) => {
+      setProfile({
+        name: user.full_name || 'Instructor',
+        email: user.email || '',
+        avatarUrl: user.avatar_url || null,
+      });
+    }).catch(() => {
+      // Fallback if fetch fails
+      setProfile({ name: 'Instructor', email: '', avatarUrl: null });
+    });
+  }, []);
+
   useEffect(() => {
     if (initialized && !authenticated) {
       router.push('/login');
@@ -42,6 +62,16 @@ export default function InstructorDashboardPage() {
   if (!authenticated) {
     return null;
   }
+
+  // Helper to get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'I';
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
@@ -74,8 +104,50 @@ export default function InstructorDashboardPage() {
               <h1 className="text-3xl font-bold text-slate-900">Instructor Dashboard</h1>
               <p className="mt-1 text-sm text-slate-500">Monitor your course performance and student progress.</p>
             </div>
-            <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-2 shadow-sm border border-slate-200">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-600 to-indigo-500 flex items-center justify-center text-sm font-bold text-white">I</div>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-2 shadow-sm border border-slate-200">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-sky-600 to-indigo-500 flex items-center justify-center text-sm font-bold text-white overflow-hidden">
+                  {profile.avatarUrl ? (
+                    <img src={profile.avatarUrl} alt={profile.name} className="h-full w-full object-cover" />
+                  ) : (
+                    getInitials(profile.name)
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">{profile.name || 'Instructor'}</p>
+                  <p className="text-xs text-slate-500">Online</p>
+                </div>
+              </div>
+              <div className="relative">
+                <button
+                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                  className="flex items-center space-x-2 rounded-full p-2 transition hover:bg-slate-100"
+                >
+                  <svg className="h-5 w-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+                {profileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 bg-white border border-slate-200">
+                    <div className="px-4 py-2 border-b border-slate-200">
+                      <p className="text-sm font-medium text-slate-900">{profile.name}</p>
+                      <p className="text-xs text-slate-500">{profile.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('access_token');
+                        router.push('/login');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm hover:bg-slate-100 text-slate-700"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
               <div>
                 <p className="text-sm font-semibold text-slate-900">Instructor Name</p>
                 <p className="text-xs text-slate-500">Online</p>

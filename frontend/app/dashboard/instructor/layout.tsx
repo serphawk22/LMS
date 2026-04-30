@@ -1,11 +1,15 @@
 'use client';
 
+
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { clearAuthToken } from '@/lib/auth';
 import { useTheme } from '@/components/ThemeProvider';
+import InstructorProfilePanel from '@/components/InstructorProfilePanel';
+import { fetchCurrentUser, uploadAvatar } from '@/services/auth';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const instructorNav = [
   { href: '/dashboard/instructor/my-courses', label: 'My Courses' },
@@ -16,7 +20,7 @@ const instructorNav = [
   { href: '/dashboard/instructor/quizzes', label: 'Quizzes' },
   { href: '/dashboard/instructor/assignments', label: 'Assignments' },
   { href: '/dashboard/instructor/reviews', label: 'Reviews' },
-  { href: '/discussions', label: 'Discussions' },
+  { href: '/dashboard/instructor/discussions', label: 'Discussions' },
 ];
 
 export default function InstructorLayout({
@@ -25,6 +29,28 @@ export default function InstructorLayout({
   children: React.ReactNode;
 }) {
   const { authenticated, initialized, role, userId } = useAuth();
+  const [profile, setProfile] = useState<{ name: string; email: string; avatarUrl: string | null }>({ name: '', email: '', avatarUrl: null });
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  useEffect(() => {
+    fetchCurrentUser().then((user) => {
+      setProfile({
+        name: user.full_name || 'Instructor',
+        email: user.email || '',
+        avatarUrl: user.avatar_url || null,
+      });
+    });
+  }, []);
+
+  const handleAvatarUpload = async (file: File) => {
+    setAvatarUploading(true);
+    try {
+      const { url } = await uploadAvatar(file);
+      setProfile((prev) => ({ ...prev, avatarUrl: url }));
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,88 +72,50 @@ export default function InstructorLayout({
     return null;
   }
 
-  return (
-    <div className="flex h-screen" style={{ backgroundColor: 'var(--surface-strong)' }}>
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 shadow-lg transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`} style={{ backgroundColor: 'var(--card-color)' }}>
-        <div className="flex items-center justify-center h-16 px-4" style={{ backgroundColor: 'var(--text-color)' }}>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--bg-color)' }}>Instructor Dashboard</h1>
-        </div>
-        <nav className="mt-8">
-          <ul className="space-y-2 px-4">
-            {instructorNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? ''
-                      : ''
-                  }`}
-                  style={{
-                    backgroundColor: pathname === item.href ? 'var(--text-color)' : 'transparent',
-                    color: pathname === item.href ? 'var(--bg-color)' : 'var(--muted-color)'
-                  }}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
+  // Hide sidebar, profile panel, and dashboard header for live class creation page
+  const isLiveClassCreate = pathname === '/dashboard/instructor/live-classes/create';
+  // Hide profile panel for discussions page
+  const isDiscussionsPage = pathname === '/dashboard/instructor/discussions';
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="shadow-sm border-b" style={{ backgroundColor: 'var(--card-color)', borderColor: 'var(--border-color)' }}>
-          <div className="flex items-center justify-between px-4 py-4">
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="lg:hidden p-2 rounded-md"
-              style={{ color: 'var(--muted-color)' }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium" style={{ color: 'var(--muted-color)' }}>
-                Welcome, Instructor
-              </span>
-              <div className="relative">
-                <button
-                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="flex items-center space-x-2 p-2 rounded-full"
-                  style={{ backgroundColor: 'var(--surface-strong)' }}
-                >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-medium" style={{ backgroundColor: 'var(--muted-color)' }}>
-                    I
-                  </div>
-                </button>
-                {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-10" style={{ backgroundColor: 'var(--card-color)' }}>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-sm hover:opacity-80"
-                      style={{ color: 'var(--muted-color)' }}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-6" style={{ backgroundColor: 'var(--bg-color)' }}>
+  if (isLiveClassCreate) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[var(--surface-strong)]">
+        <main className="w-full max-w-3xl mx-auto p-6">
           {children}
         </main>
       </div>
+    );
+  }
 
+  // ...existing code...
+  return (
+    <div className="flex h-screen bg-[var(--surface-strong)]">
+      {/* Profile Panel (Desktop) - Hidden for discussions page */}
+      <div className="hidden lg:block" style={{ display: isDiscussionsPage ? 'none' : 'block' }}>
+        <InstructorProfilePanel
+          name={profile.name}
+          email={profile.email}
+          avatarUrl={profile.avatarUrl}
+          onAvatarUpload={handleAvatarUpload}
+        />
+      </div>
+      {/* Mobile Header with Profile */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-[var(--card-color)] border-b border-[var(--border-color)] shadow-sm">
+        {/* ...existing code... */}
+      </div>
+      {/* Sidebar Navigation (Desktop) */}
+      <div className="hidden lg:flex flex-col w-64 min-h-screen pt-60 pl-2 bg-transparent z-20">
+        {/* ...existing code... */}
+      </div>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden ml-0 lg:ml-[18rem)] pt-14 lg:pt-0">
+        {/* Desktop Header */}
+        {/* ...existing code... */}
+        {/* Page content */}
+        <main className="flex-1 overflow-y-auto p-6 bg-[var(--bg-color)]">
+          {children}
+        </main>
+      </div>
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div

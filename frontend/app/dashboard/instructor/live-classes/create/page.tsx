@@ -41,10 +41,10 @@ export default function CreateLiveClassPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold mb-6">Schedule New Live Class</h1>
-          <div className="bg-white p-6 rounded-lg shadow">
+          <h1 className="text-3xl font-bold text-[var(--text-color)] mb-6">Schedule New Live Class</h1>
+          <div className="bg-[var(--card-color)] p-6 rounded-lg shadow border border-[var(--border-color)]">
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-color)] mb-2">
                 Select Course <span className="text-red-500">*</span>
               </label>
               {loading ? (

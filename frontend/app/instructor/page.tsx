@@ -41,6 +41,8 @@ import InstructorAssignmentsPage from '@/components/InstructorAssignmentsPage';
 import { InstructorAnnouncementsPanel } from '@/components/InstructorAnnouncementsPanel';
 import InstructorSubmissionsPage from '@/components/InstructorSubmissionsPage';
 import InstructorLiveClassesList from '@/components/InstructorLiveClassesList';
+import ThemeToggle from '@/components/ThemeToggle';
+import { fetchCurrentUser, uploadAvatar } from '@/services/auth';
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (axios.isAxiosError(error)) {
@@ -75,6 +77,37 @@ export default function InstructorPage() {
   const { authenticated, role, userId } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
+
+  // Profile state
+  const [profile, setProfile] = useState<{ name: string; email: string; avatarUrl: string | null }>({ name: '', email: '', avatarUrl: null });
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  // Fetch current user on mount
+  useEffect(() => {
+    fetchCurrentUser().then((user) => {
+      setProfile({
+        name: user.full_name || 'Instructor',
+        email: user.email || '',
+        avatarUrl: user.avatar_url || null,
+      });
+    }).catch(() => {
+      // Fallback to role-based name if fetch fails
+      setProfile({ name: 'Instructor', email: '', avatarUrl: null });
+    });
+  }, []);
+
+  const handleAvatarUpload = async (file: File) => {
+    setAvatarUploading(true);
+    try {
+      const { url } = await uploadAvatar(file);
+      setProfile((prev) => ({ ...prev, avatarUrl: url }));
+    } catch (error) {
+      console.error('Avatar upload failed:', error);
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
 
   const [tab, setTab] = useState<Tab>('courses');
   const [courses, setCourses] = useState<CourseData[]>([]);
@@ -685,75 +718,151 @@ export default function InstructorPage() {
   /* RENDER                                                       */
   /* ──────────────────────────────────────────────────────────── */
 
+  // Helper to get initials from name
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join('') || 'I';
+  };
+
   return (
-    <main className="min-h-screen px-4 py-10 sm:px-6" style={{ backgroundColor: 'var(--surface-strong)', color: 'var(--text-color)' }}>
-      <div className="w-full space-y-8">
-
-        {/* ── header ─────────────────────────────────────── */}
-        <section className="overflow-hidden rounded-[2rem] px-8 py-10 shadow-2xl sm:px-12" style={{ background: 'linear-gradient(to bottom right, var(--text-color), #1e293b, var(--text-color))', color: 'var(--bg-color)' }}>
-          <p className="text-xs uppercase tracking-[0.35em]" style={{ color: 'var(--primary-color)' }}>Instructor panel</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Course management</h1>
-          <p className="mt-4 max-w-xl text-sm sm:text-base" style={{ color: 'rgba(255,255,255,0.7)' }}>Create, edit, publish and organise your courses, modules and lessons from one place.</p>
-
-          <div className="mt-8 flex flex-wrap gap-2">
-            {(['courses', 'create', 'quizzes', 'assignments', 'submissions', 'results', 'announcements', 'live_classes', 'discussions'] as Tab[]).map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => { setTab(t); if (t === 'create') { setForm({ ...emptyForm }); setEditId(null); } }}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === t ? '' : ''}`}
-                style={{
-                  backgroundColor: tab === t ? 'var(--bg-color)' : 'rgba(255,255,255,0.1)',
-                  color: tab === t ? 'var(--text-color)' : 'var(--bg-color)'
-                }}
-              >
-                {t === 'courses' ? 'My courses' : t === 'create' ? 'New course' : t === 'quizzes' ? 'Quizzes' : t === 'assignments' ? 'Assignments' : t === 'submissions' ? 'Submissions' : t === 'results' ? 'Results' : t === 'announcements' ? 'Announcements' : t === 'live_classes' ? 'Live Classes' : 'Discussions'}
-              </button>
-            ))}
-            {tab === 'edit' && (
-              <button type="button" className="rounded-full px-5 py-2.5 text-sm font-semibold" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}>
-                Edit course
-              </button>
-            )}
-            {tab === 'structure' && (
-              <button type="button" className="rounded-full px-5 py-2.5 text-sm font-semibold" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}>
-                Course structure
-              </button>
-            )}
-            {tab === 'live_classes' && (
-              <button type="button" className="rounded-full px-5 py-2.5 text-sm font-semibold" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}>
-                Live Classes
-              </button>
-            )}
-            {tab === 'discussions' && (
-              <button type="button" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900">
-                Discussions
-              </button>
-            )}
-          </div>
-        </section>
-
-        {/* ── alerts ─────────────────────────────────────── */}
-        {error && (
-          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 text-sm text-rose-700">
-            {error}
-            <button type="button" onClick={() => setError('')} className="ml-4 font-semibold underline">Dismiss</button>
-          </div>
-        )}
-        {success && (
-          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-700">
-            {success}
-          </div>
-        )}
-
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: COURSES LIST                                   */}
-        {/* ═══════════════════════════════════════════════════ */}
-        {tab === 'courses' && (
-          <section className="space-y-6">
-            {/* filters */}
-            <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-sm">
-              <input
+    <main className="min-h-screen px-0 py-0 sm:px-0" style={{ backgroundColor: 'var(--surface-strong)', color: 'var(--text-color)' }}>
+      <div className="flex min-h-screen">
+        {/* Main content area (centered) */}
+        <div className="flex-1 flex flex-col items-center justify-start py-10 px-4 sm:px-8">
+          {/* Top Header with Theme Toggle and Profile */}
+          <header className="w-full max-w-5xl flex items-center justify-between rounded-2xl bg-[var(--card-color)] px-6 py-4 shadow-sm border border-[var(--border-color)] mb-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--primary-color)] text-sm font-bold text-white">
+                {profile.avatarUrl ? (
+                  <img src={profile.avatarUrl} alt={profile.name} className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  getInitials(profile.name)
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[var(--text-color)]">{profile.name || 'Instructor'}</p>
+                <p className="text-xs text-[var(--muted-color)]">Online</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <div className="relative">
+                <button
+                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                  className="flex items-center space-x-2 rounded-full p-2 transition hover:bg-[var(--surface-strong)]"
+                >
+                  <svg className="h-5 w-5 text-[var(--muted-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+                {profileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 bg-[var(--card-color)] border border-[var(--border-color)]">
+                    <div className="px-4 py-2 border-b border-[var(--border-color)]">
+                      <p className="text-sm font-medium text-[var(--text-color)]">{profile.name}</p>
+                      <p className="text-xs text-[var(--muted-color)]">{profile.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('access_token');
+                        router.push('/login');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm hover:opacity-80 text-[var(--muted-color)]"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+          {/* Main header */}
+          <section className="w-full max-w-5xl overflow-hidden rounded-[2rem] px-8 py-10 shadow-2xl sm:px-12 mb-8" style={{ background: 'linear-gradient(to bottom right, var(--text-color), #1e293b, var(--text-color))', color: 'var(--bg-color)' }}>
+            <p className="text-xs uppercase tracking-[0.35em]" style={{ color: 'var(--primary-color)' }}>Instructor panel</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Course management</h1>
+            <p className="mt-4 max-w-xl text-sm sm:text-base" style={{ color: 'rgba(255,255,255,0.7)' }}>Create, edit, publish and organise your courses, modules and lessons from one place.</p>
+          </section>
+          {/* Alerts */}
+          {error && (
+            <div className="w-full max-w-3xl rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 text-sm text-rose-700 mb-4">
+              {error}
+              <button type="button" onClick={() => setError('')} className="ml-4 font-semibold underline">Dismiss</button>
+            </div>
+          )}
+          {success && (
+            <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-700 mb-4">
+              {success}
+            </div>
+          )}
+          {/* Main content (tab content) */}
+          <div className="w-full max-w-5xl">
+            {/* TAB: COURSES LIST */}
+            {tab === 'courses' && (
+                ) : (
+                  getInitials(profile.name)
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[var(--text-color)]">{profile.name || 'Instructor'}</p>
+                <p className="text-xs text-[var(--muted-color)]">Online</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <div className="relative">
+                <button
+                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                  className="flex items-center space-x-2 rounded-full p-2 transition hover:bg-[var(--surface-strong)]"
+                >
+                  <svg className="h-5 w-5 text-[var(--muted-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+                {profileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 z-50 bg-[var(--card-color)] border border-[var(--border-color)]">
+                    <div className="px-4 py-2 border-b border-[var(--border-color)]">
+                      <p className="text-sm font-medium text-[var(--text-color)]">{profile.name}</p>
+                      <p className="text-xs text-[var(--muted-color)]">{profile.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        localStorage.removeItem('access_token');
+                        router.push('/login');
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm hover:opacity-80 text-[var(--muted-color)]"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </header>
+          {/* Main header */}
+          <section className="w-full max-w-5xl overflow-hidden rounded-[2rem] px-8 py-10 shadow-2xl sm:px-12 mb-8" style={{ background: 'linear-gradient(to bottom right, var(--text-color), #1e293b, var(--text-color))', color: 'var(--bg-color)' }}>
+            <p className="text-xs uppercase tracking-[0.35em]" style={{ color: 'var(--primary-color)' }}>Instructor panel</p>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Course management</h1>
+            <p className="mt-4 max-w-xl text-sm sm:text-base" style={{ color: 'rgba(255,255,255,0.7)' }}>Create, edit, publish and organise your courses, modules and lessons from one place.</p>
+          </section>
+          {/* Alerts */}
+          {error && (
+            <div className="w-full max-w-3xl rounded-2xl border border-rose-200 bg-rose-50 px-6 py-4 text-sm text-rose-700 mb-4">
+              {error}
+              <button type="button" onClick={() => setError('')} className="ml-4 font-semibold underline">Dismiss</button>
+            </div>
+          )}
+          {success && (
+            <div className="w-full max-w-3xl rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-700 mb-4">
+              {success}
+            </div>
+          )}
+          {/* Main content (tab content) */}
+          <div className="w-full max-w-5xl">
+            {/* TAB: COURSES LIST */}
+            {tab === 'courses' && (
                 type="text"
                 placeholder="Search courses…"
                 value={searchQuery}
@@ -839,9 +948,7 @@ export default function InstructorPage() {
           </section>
         )}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: CREATE / EDIT COURSE                           */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: CREATE / EDIT COURSE */}
         {(tab === 'create' || tab === 'edit') && (
           <section className="space-y-6">
             <div className="rounded-2xl bg-white p-8 shadow-sm">
@@ -1025,9 +1132,7 @@ export default function InstructorPage() {
           </section>
         )}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: COURSE STRUCTURE (Modules + Lessons)           */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: COURSE STRUCTURE */}
         {tab === 'structure' && structure && (
           <section className="space-y-6">
             <div className="flex items-center justify-between">
@@ -1214,38 +1319,26 @@ export default function InstructorPage() {
           </section>
         )}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: ASSIGNMENTS                                    */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: ASSIGNMENTS */}
         {tab === 'assignments' && <InstructorAssignmentsPage />}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: SUBMISSIONS                                    */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: SUBMISSIONS */}
         {tab === 'submissions' && <InstructorSubmissionsPage />}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: ANNOUNCEMENTS                                  */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: ANNOUNCEMENTS */}
         {tab === 'announcements' && <InstructorAnnouncementsPanel courses={courses} />}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: LIVE CLASSES                                   */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: LIVE CLASSES */}
         {tab === 'live_classes' && userId && <InstructorLiveClassesList instructorId={parseInt(userId)} />}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: DISCUSSIONS                                    */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: DISCUSSIONS */}
         {tab === 'discussions' && (
           <div className="rounded-[28px] border border-slate-200/70 bg-slate-50 p-6 text-center">
             <p className="text-slate-600">Redirecting to Discussions...</p>
           </div>
         )}
 
-        {/* ═══════════════════════════════════════════════════ */}
-        {/* TAB: QUIZZES                                        */}
-        {/* ═══════════════════════════════════════════════════ */}
+        {/* TAB: QUIZZES */}
         {tab === 'quizzes' && (
           <section className="space-y-6">
             <div className="flex items-center justify-between">
