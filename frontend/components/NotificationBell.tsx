@@ -2,27 +2,44 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { fetchStudentNotifications, markNotificationAsRead } from '@/services/dashboard';
+import { fetchUserNotifications, markNotificationAsRead } from '@/services/dashboard';
+import { clearAccessToken } from '@/lib/auth';
 import type { DashboardNotificationItem } from '@/types/dashboard';
 
 const POLL_INTERVAL_MS = 30000;
 
 export function NotificationBell() {
-  const { authenticated } = useAuth();
+  const { authenticated, initialized } = useAuth();
   const [notifications, setNotifications] = useState<DashboardNotificationItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [authValid, setAuthValid] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const loadNotifications = async () => {
+    // Skip if not fully initialized or not authenticated
+    if (!initialized || !authenticated) {
+      return;
+    }
+    
     setLoading(true);
     setError('');
 
     try {
-      const data = await fetchStudentNotifications();
+      const data = await fetchUserNotifications();
       setNotifications(data);
-    } catch (err) {
+      setAuthValid(true);
+    } catch (err: unknown) {
+      // Check for 401 Unauthorized - stop polling if auth is invalid
+      if (err && typeof err === 'object' && 'response' in err) {
+        const axiosErr = err as { response?: { status?: number } };
+        if (axiosErr.response?.status === 401) {
+          setAuthValid(false);
+          setError('Session expired. Please log in again.');
+          return;
+        }
+      }
       setError('Unable to load notifications.');
     } finally {
       setLoading(false);
@@ -31,28 +48,29 @@ export function NotificationBell() {
 
   useEffect(() => {
     let mounted = true;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     async function safeLoadNotifications() {
-      if (!mounted || !authenticated) return;
+      if (!mounted || !initialized || !authenticated || !authValid) return;
       await loadNotifications();
     }
 
-    if (authenticated) {
+    // Only start polling when auth is fully initialized and valid
+    if (initialized && authenticated && authValid) {
       safeLoadNotifications();
-      const interval = window.setInterval(safeLoadNotifications, POLL_INTERVAL_MS);
-      return () => {
-        mounted = false;
-        window.clearInterval(interval);
-      };
+      interval = setInterval(safeLoadNotifications, POLL_INTERVAL_MS);
     }
 
     return () => {
       mounted = false;
+      if (interval) {
+        clearInterval(interval);
+      }
     };
-  }, [authenticated]);
+  }, [initialized, authenticated, authValid]);
 
   useEffect(() => {
-    if (!isOpen || !authenticated) {
+    if (!isOpen || !initialized || !authenticated || !authValid) {
       return;
     }
 

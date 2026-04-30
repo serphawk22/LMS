@@ -94,9 +94,22 @@ export default function UploadLessonsPage() {
       return;
     }
 
-    const validLessons = lessons.filter((lesson) => lesson.title.trim() && lesson.video_url.trim());
+
+    // Validate each lesson: title and valid Google Drive link
+    const validLessons = lessons.filter((lesson) => {
+      const titleOk = lesson.title.trim();
+      const urlOk = lesson.video_url.trim();
+      let urlValid = false;
+      try {
+        const urlObj = new URL(urlOk);
+        urlValid = urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+      } catch {
+        urlValid = false;
+      }
+      return titleOk && urlOk && urlValid;
+    });
     if (!validLessons.length) {
-      setError('Add at least one lesson with a title and video URL.');
+      setError('Add at least one lesson with a title and a valid Google Drive link.');
       setSubmitting(false);
       return;
     }
@@ -112,8 +125,9 @@ export default function UploadLessonsPage() {
           : selectedModuleId;
 
       await Promise.all(
-        validLessons.map((lesson) =>
-          createLesson({
+        validLessons.map((lesson) => {
+          const url = lesson.video_url.trim();
+          return createLesson({
             course_id: selectedCourseId,
             module_id: moduleId,
             title: lesson.title.trim(),
@@ -128,11 +142,17 @@ export default function UploadLessonsPage() {
             unlock_after_days: null,
             prerequisite_ids: [],
             content_payload: {
-              url: lesson.video_url.trim(),
+              url,
               title: lesson.title.trim(),
+              resources: [
+                {
+                  title: url.includes('docs.google.com') ? 'Google Drive Material' : 'Study Material',
+                  url,
+                },
+              ],
             },
-          })
-        )
+          });
+        })
       );
 
       setMessage('Video lessons added successfully.');
@@ -141,7 +161,11 @@ export default function UploadLessonsPage() {
       setNewModuleTitle('New module');
       setCourseStructure(await fetchCourseStructure(selectedCourseId));
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Unable to add lessons.');
+      // Try to show backend error message if available
+      let backendMsg = 'Unable to add lessons.';
+      if (err?.response?.data?.detail) backendMsg = err.response.data.detail;
+      else if (err?.message) backendMsg = err.message;
+      setError(backendMsg);
     } finally {
       setSubmitting(false);
     }

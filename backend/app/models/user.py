@@ -1,5 +1,5 @@
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, func
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, hybrid_property
 
 from app.database import Base
 
@@ -17,3 +17,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     tenant = relationship("Tenant", back_populates="users")
+
+    @hybrid_property
+    def role_name(self) -> str:
+        """Return the role name from the role column."""
+        return self.role or "student"

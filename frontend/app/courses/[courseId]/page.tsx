@@ -16,7 +16,7 @@ import type { EnrollmentData } from '@/services/instructor';
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const courseId = Array.isArray(params.courseId) ? params.courseId[0] : params.courseId;
+  const courseId = params?.courseId ? (Array.isArray(params.courseId) ? params.courseId[0] : params.courseId) : null;
   const [course, setCourse] = useState<CourseDetails | null>(null);
   const [structure, setStructure] = useState<CourseStructure | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -152,6 +152,9 @@ export default function CourseDetailsPage() {
     setLoadingQuizzes(true);
 
     fetchCourseStructure(courseId)
+      .then((data) => {
+        setStructure(data);
+      })
       .catch(() => {
         // keep course page available even if structure cannot load
       })
@@ -506,88 +509,140 @@ export default function CourseDetailsPage() {
                     </>
                   )}
 
-                  {/* LESSONS TAB */}
+                  {/* LESSONS TAB - Module-wise display */}
                   {activeTab === 'lesson' && (
                     <>
                       <div className="flex items-center justify-between mb-4">
                         <div>
                           <h3 className="text-lg font-semibold text-slate-900">Course Lessons</h3>
-                          <p className="mt-1 text-sm text-slate-600">Browse and explore all course lessons</p>
+                          <p className="mt-1 text-sm text-slate-600">Browse and explore all course lessons by module</p>
                         </div>
                         <span className="rounded-full bg-sky-100 px-4 py-2 text-sm font-semibold text-sky-700">
                           {lessonCount} lessons
                         </span>
                       </div>
 
-                      {course?.lessons && course.lessons.length > 0 ? (
-                        <div className="space-y-2">
-                          {course.lessons.map((lesson) => (
-                            <div key={lesson.id} className="rounded-lg border border-slate-200 bg-white hover:shadow-md transition overflow-hidden">
-                              <button
-                                onClick={() => setOpenLessonId(openLessonId === lesson.id ? null : lesson.id)}
-                                className="w-full text-left p-4 flex items-center justify-between hover:bg-slate-50"
-                              >
-                                <div className="flex items-center gap-4 flex-1">
-                                  <span className="text-lg">
-                                    {openLessonId === lesson.id ? '▼' : '▶'}
-                                  </span>
-                                  <div className="min-w-0">
-                                    <p className="font-semibold text-slate-900 truncate">{lesson.title}</p>
-                                    {lesson.description && (
-                                      <p className="mt-1 text-xs text-slate-600 line-clamp-1">{lesson.description}</p>
+                      {/* Use structure.modules for module-wise display */}
+                      {structure?.modules && structure.modules.length > 0 ? (
+                        <div className="space-y-6">
+                          {structure.modules.map((module, moduleIndex) => (
+                            <div key={module.id} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                              <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
+                                <h4 className="font-semibold text-slate-900">
+                                  <span className="text-sky-600">Module {moduleIndex + 1}:</span> {module.title}
+                                </h4>
+                                {module.description && (
+                                  <p className="mt-1 text-xs text-slate-600">{module.description}</p>
+                                )}
+                              </div>
+                              <div className="divide-y divide-slate-100">
+                                {module.lessons.map((lesson, lessonIndex) => (
+                                  <div key={lesson.id}>
+                                    <button
+                                      onClick={() => setOpenLessonId(openLessonId === lesson.id ? null : lesson.id)}
+                                      className="w-full text-left p-4 flex items-center justify-between hover:bg-slate-50 transition"
+                                    >
+                                      <div className="flex items-center gap-4 flex-1">
+                                        <span className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-100 text-sky-600 text-sm font-semibold">
+                                          {lessonIndex + 1}
+                                        </span>
+                                        <div className="min-w-0">
+                                          <p className="font-semibold text-slate-900 truncate">{lesson.title}</p>
+                                          {lesson.content && (
+                                            <p className="mt-1 text-xs text-slate-600 line-clamp-1">{lesson.content}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-3">
+                                        {lesson.duration_minutes && (
+                                          <span className="text-xs text-slate-500">{lesson.duration_minutes}m</span>
+                                        )}
+                                        <span className="text-lg text-slate-400">
+                                          {openLessonId === lesson.id ? '▼' : '▶'}
+                                        </span>
+                                      </div>
+                                    </button>
+
+                                    {openLessonId === lesson.id && (
+                                      <div className="px-4 pb-4 pt-0 border-t border-slate-100 bg-slate-50">
+                                        {/* Video Player Preview */}
+                                        {lesson.video_url ? (
+                                          <div className="mt-4">
+                                            {lesson.video_url.includes('vimeo.com') || lesson.video_url.includes('youtube.com') || lesson.video_url.includes('youtu.be') ? (
+                                              <iframe
+                                                src={lesson.video_url}
+                                                width="100%"
+                                                height="250"
+                                                allow="autoplay; fullscreen"
+                                                allowFullScreen
+                                                title={lesson.title}
+                                                className="rounded-lg"
+                                              />
+                                            ) : (
+                                              <div className="rounded-lg bg-white border border-slate-200 p-4 text-center">
+                                                <p className="text-sm text-slate-600 mb-3">External link lesson</p>
+                                                <Link
+                                                  href={`/courses/${courseId}/lessons/${lesson.id}`}
+                                                  className="inline-flex items-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+                                                >
+                                                  Open Lesson →
+                                                </Link>
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <div className="mt-4 rounded-lg bg-white border border-slate-200 p-4 text-center">
+                                            <Link
+                                              href={`/courses/${courseId}/lessons/${lesson.id}`}
+                                              className="inline-flex items-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+                                            >
+                                              Open Lesson →
+                                            </Link>
+                                          </div>
+                                        )}
+
+                                        {/* Study Materials / Google Drive Links */}
+                                        {lesson.content_payload && (
+                                          <>
+                                            {(lesson.content_payload as any)?.resources?.length > 0 && (
+                                              <div className="rounded-lg border border-slate-200 bg-white p-4 mt-4">
+                                                <h4 className="text-sm font-semibold text-slate-900 mb-3">📂 Study Materials</h4>
+                                                <div className="space-y-2">
+                                                  {((lesson.content_payload as any).resources as any[]).map((resource: any, idx: number) => (
+                                                    <button
+                                                      key={idx}
+                                                      type="button"
+                                                      onClick={() => window.open(resource.url, '_blank')}
+                                                      className="w-full inline-flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 font-medium"
+                                                    >
+                                                      <span className="line-clamp-1">{resource.title || 'Study Material'}</span>
+                                                      <span className="text-sky-600 ml-2 flex-shrink-0">Open →</span>
+                                                    </button>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            )}
+                                            {/* Also show URL from content_payload for external_link lessons */}
+                                            {(lesson.content_payload as any)?.url && !((lesson.content_payload as any)?.resources?.length > 0) && (
+                                              <div className="rounded-lg border border-slate-200 bg-white p-4 mt-4">
+                                                <h4 className="text-sm font-semibold text-slate-900 mb-3">🔗 Lesson Link</h4>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => window.open((lesson.content_payload as any).url, '_blank')}
+                                                  className="w-full inline-flex items-center justify-between rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-700 transition hover:border-sky-300 hover:bg-sky-100 font-medium"
+                                                >
+                                                  <span className="line-clamp-1">{(lesson.content_payload as any).url}</span>
+                                                  <span className="text-sky-600 ml-2 flex-shrink-0">Open →</span>
+                                                </button>
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
                                     )}
                                   </div>
-                                </div>
-                                {lesson.duration_minutes && (
-                                  <span className="text-xs text-slate-500 ml-2 flex-shrink-0">{lesson.duration_minutes}m</span>
-                                )}
-                              </button>
-
-                              {openLessonId === lesson.id && lesson.video_url && (
-                                <div className="px-4 pb-4 pt-0 border-t border-slate-200 bg-slate-50">
-                                  {lesson.video_url.includes('vimeo.com') ? (
-                                    <iframe
-                                      src={lesson.video_url}
-                                      width="100%"
-                                      height="300"
-                                      allow="autoplay; fullscreen"
-                                      allowFullScreen
-                                      title={lesson.title}
-                                      className="rounded-lg mt-4"
-                                    />
-                                  ) : (
-                                    <div className="rounded-lg bg-white px-4 py-8 text-center mt-4">
-                                      <p className="text-sm text-slate-600 mb-3">Preview not available for this lesson type</p>
-                                      <Link
-                                        href={`/courses/${courseId}/lessons/${lesson.id}`}
-                                        className="inline-flex items-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
-                                      >
-                                        Open Full Lesson →
-                                      </Link>
-                                    </div>
-                                  )}
-
-                                  {/* Study Materials */}
-                                  {lesson.content_payload && Array.isArray((lesson.content_payload as any)?.resources) && (lesson.content_payload as any).resources.length > 0 && (
-                                    <div className="rounded-lg border border-slate-200 bg-white p-4 mt-4">
-                                      <h4 className="text-sm font-semibold text-slate-900 mb-3">📂 Study Materials</h4>
-                                      <div className="space-y-2">
-                                        {((lesson.content_payload as any).resources as any[]).map((resource, idx) => (
-                                          <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => window.open(resource.url, '_blank')}
-                                            className="w-full inline-flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700 transition hover:border-sky-300 hover:bg-sky-50 font-medium"
-                                          >
-                                            <span className="line-clamp-1">{resource.title || 'Study Material'}</span>
-                                            <span className="text-sky-600 ml-2 flex-shrink-0">→</span>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
+                                ))}
+                              </div>
                             </div>
                           ))}
                         </div>

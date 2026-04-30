@@ -99,6 +99,7 @@ export default function DashboardPage() {
 
         // Check if critical data loaded
         let hasCriticalError = false;
+        const errors: string[] = [];
 
         if (userResult.status === 'fulfilled') {
           setUser(userResult.value);
@@ -109,17 +110,31 @@ export default function DashboardPage() {
             router.push('/login');
             return;
           }
+          errors.push('User profile');
           hasCriticalError = true;
         }
 
         if (dashboardResult.status === 'fulfilled') {
           setDashboardOverview(dashboardResult.value);
         } else {
+          errors.push('Dashboard data');
           hasCriticalError = true;
         }
 
         if (weeklyResult.status === 'fulfilled') {
           setWeeklyStats(weeklyResult.value);
+        } else {
+          // Weekly stats is not critical - use defaults
+          setWeeklyStats({
+            courses_enrolled: 0,
+            courses_completed: 0,
+            quizzes_attempted: 0,
+            assignments_submitted: 0,
+            lessons_completed: 0,
+            total_study_time_minutes: 0,
+            average_score: null,
+            streak_days: 0,
+          });
         }
 
         // Secondary data - failures here don't matter
@@ -139,7 +154,8 @@ export default function DashboardPage() {
 
         // Only show error if critical primary data failed
         if (hasCriticalError) {
-          setError('Unable to load dashboard data. Please refresh the page.');
+          console.error('[Dashboard] Failed to load:', errors.join(', '));
+          setError('Unable to load complete dashboard data. Some features may be unavailable.');
         } else {
           setError('');
         }
@@ -560,6 +576,41 @@ export default function DashboardPage() {
     );
   }
 
+  // Show loading skeleton while data is being fetched
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-color)] relative">
+        <div className="fixed top-0 right-0 -z-10 opacity-40">
+          <div className="w-96 h-96 bg-gradient-to-br from-blue-400 to-purple-400 rounded-full blur-3xl"></div>
+        </div>
+        <div className="fixed bottom-0 left-0 -z-10 opacity-30">
+          <div className="w-96 h-96 bg-gradient-to-tr from-pink-300 to-purple-300 rounded-full blur-3xl"></div>
+        </div>
+        <ModernHeader showNav={true} userName="User" userInitials="U" />
+        <main className="w-full px-6 lg:px-10 py-12">
+          <div className="w-full space-y-12">
+            {/* Welcome Section Skeleton */}
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-purple-600 p-6 sm:p-10">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-white/20 rounded w-32"></div>
+                <div className="h-10 bg-white/20 rounded w-64"></div>
+                <div className="h-6 bg-white/20 rounded w-96"></div>
+              </div>
+            </div>
+            {/* Courses Skeleton */}
+            <div className="space-y-6">
+              <div className="h-8 bg-slate-200 rounded w-48 animate-pulse"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="h-48 bg-slate-200 rounded-2xl animate-pulse"></div>
+                <div className="h-48 bg-slate-200 rounded-2xl animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg-color)] relative">
       {/* Decorative background elements */}
@@ -580,9 +631,15 @@ export default function DashboardPage() {
                 <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-red-900">Unable to load dashboard</h3>
                   <p className="text-sm text-red-800 mt-1">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Click to retry →
+                  </button>
                 </div>
               </div>
             </div>

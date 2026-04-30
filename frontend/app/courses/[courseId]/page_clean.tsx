@@ -14,7 +14,7 @@ import type { EnrollmentData } from '@/services/instructor';
 export default function CourseDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const courseId = Array.isArray(params.courseId) ? params.courseId[0] : params.courseId;
+  const courseId = params?.courseId ? (Array.isArray(params.courseId) ? params.courseId[0] : params.courseId) : null;
   const [course, setCourse] = useState<CourseDetails | null>(null);
   const [structure, setStructure] = useState<CourseStructure | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);

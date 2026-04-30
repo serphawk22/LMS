@@ -25,33 +25,70 @@ api.interceptors.request.use((config) => {
     }
   }
 
-  const headers = {
-    ...(config.headers || {}),
+  const headers: Record<string, string> = {
+    ...(config.headers as Record<string, string> || {}),
   };
 
+  // Get token and validate it
   const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[API] Token from localStorage:', token ? `present (${token.substring(0, 20)}...)` : 'null/missing');
+  }
+
   if (token) {
     if (isAccessTokenValid(token)) {
       headers.Authorization = `Bearer ${token}`;
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[API] Token validated successfully, Authorization header set');
+      }
     } else {
+      // Token is expired or invalid - clear it
       clearAccessToken();
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[API] Token expired or invalid, cleared from storage');
+      }
+    }
+  } else {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[API] No access_token in localStorage');
     }
   }
 
+  // Always try to get tenant_id from localStorage first, then from token
   let tenant = typeof window !== 'undefined'
     ? localStorage.getItem('tenant_id')
     : process.env.NEXT_PUBLIC_TENANT_ID;
 
-  if (!tenant && token) {
+  // If no tenant in localStorage, extract from token and cache it
+  if ((!tenant || tenant === 'null' || tenant === 'undefined') && token) {
     const payload = decodeTokenPayload(token);
     tenant = payload?.tenant_id ? String(payload.tenant_id) : null;
     if (tenant && typeof window !== 'undefined') {
       localStorage.setItem('tenant_id', tenant);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[API] Extracted tenant_id from token:', tenant);
+      }
     }
   }
 
-  if (tenant) {
+  if (tenant && tenant !== 'null' && tenant !== 'undefined') {
     headers['x-tenant-id'] = tenant;
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[API] x-tenant-id header set:', tenant);
+    }
+  } else {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[API] No tenant_id found for request:', config.url);
+    }
+  }
+
+  // Log final headers
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[API] Final request headers:', {
+      Authorization: headers.Authorization ? `Bearer ${headers.Authorization.substring(0, 30)}...` : 'MISSING',
+      'x-tenant-id': headers['x-tenant-id'] || 'MISSING',
+    });
   }
 
   config.headers = headers as any;
@@ -127,6 +164,19 @@ api.interceptors.response.use(
         localStorage.setItem('access_token', newAccessToken);
         if (newRefreshToken) {
           localStorage.setItem('refresh_token', newRefreshToken);
+        }
+
+        // Extract and save tenant_id from new access token
+        try {
+          const payload = newAccessToken.split('.')[1];
+          const padded = payload + '='.repeat((4 - (payload.length % 4)) % 4);
+          const decoded = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+          const decodedPayload = JSON.parse(decoded);
+          if (decodedPayload?.tenant_id) {
+            localStorage.setItem('tenant_id', String(decodedPayload.tenant_id));
+          }
+        } catch {
+          // Ignore decode errors
         }
 
         processQueue(null, newAccessToken);

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from './NotificationBell';
 import { ProfileDropdown } from './ProfileDropdown';
@@ -19,29 +19,34 @@ const ADMIN_ROLES = ['organization_admin', 'super_admin', 'admin'];
 const INSTRUCTOR_ROLES = ['instructor', ...ADMIN_ROLES];
 
 export function ModernHeader({ showNav = true, userName = 'User', userInitials = 'U', userImageUrl }: ModernHeaderProps) {
-  const { authenticated, role } = useAuth();
+  const { authenticated, initialized, role } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isAdmin = role ? ADMIN_ROLES.includes(role) : false;
   const isInstructor = role ? INSTRUCTOR_ROLES.includes(role) : false;
 
   const navItems = [
-    { href: '/dashboard', label: 'Home', icon: '🏠', active: true },
-    { href: '/courses', label: 'Learn', icon: '📚' },
-    { href: '/support', label: 'Support', icon: '🆘' },
-    { href: '/discussions', label: 'Discussions', icon: '💬' },
-  ];
+    { href: '/dashboard', label: 'Home', icon: 'Home' },
+    { href: '/courses', label: 'Learn', icon: 'Learn' },
+    { href: '/support', label: 'Support', icon: 'Support' },
+    { href: '/discussions', label: 'Discussions', icon: 'Discuss' },
+  ].map((item) => ({
+    ...item,
+    active: pathname === item.href || (item.href !== '/dashboard' && pathname?.startsWith(`${item.href}/`)),
+  }));
 
   const handleCalendarClick = () => {
     router.push('/calendar');
   };
 
+  // Wait for auth to be initialized before rendering authenticated state
+  const showAuthenticatedContent = initialized && authenticated;
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-100/50 bg-white/95 backdrop-blur-md shadow-sm">
-      <div className="w-full px-6 lg:px-10">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+      <div className="w-full px-6 lg:px-10 flex items-center justify-between h-16">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-lg group-hover:shadow-lg transition-shadow duration-200">
               L
@@ -51,12 +56,11 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           {showNav && authenticated && (
             <nav className="hidden lg:flex items-center gap-1">
-              {navItems.map((item, idx) => (
+              {navItems.map((item) => (
                 <Link
-                  key={idx}
+                  key={item.href}
                   href={item.href}
                   className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
                     item.active
@@ -71,12 +75,10 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
             </nav>
           )}
 
-          {/* Right side - Icons and Profile */}
           <div className="flex items-center gap-3">
-            {authenticated && (
+            {showAuthenticatedContent && (
               <>
-                {/* Calendar Icon */}
-                <button 
+                <button
                   onClick={handleCalendarClick}
                   className="p-2 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 cursor-pointer"
                   title="Calendar"
@@ -86,18 +88,13 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
                   </svg>
                 </button>
 
-                {/* Notifications */}
                 <NotificationBell />
-
-                {/* Profile */}
                 <ProfileDropdown userInitials={userInitials} userName={userName} userImageUrl={userImageUrl} />
-
-                {/* Theme Toggle */}
                 <ThemeToggle />
               </>
             )}
 
-            {!authenticated && (
+            {!showAuthenticatedContent && (
               <div className="hidden sm:flex items-center gap-2">
                 <Link
                   href="/login"
@@ -114,8 +111,7 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
               </div>
             )}
 
-            {/* Mobile Menu Button */}
-            {showNav && authenticated && (
+            {showNav && showAuthenticatedContent && (
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -128,22 +124,24 @@ export function ModernHeader({ showNav = true, userName = 'User', userInitials =
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {showNav && authenticated && mobileMenuOpen && (
+        {showNav && showAuthenticatedContent && mobileMenuOpen && (
           <nav className="lg:hidden border-t border-slate-100 py-3 space-y-1">
-            {navItems.map((item, idx) => (
+            {navItems.map((item) => (
               <Link
-                key={idx}
+                key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 text-sm font-medium text-slate-600 rounded-lg hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200"
+                className={`block px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                  item.active
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-slate-600 hover:text-blue-600 hover:bg-blue-50'
+                }`}
               >
                 {item.icon} {item.label}
               </Link>
             ))}
           </nav>
         )}
-      </div>
     </header>
   );
 }

@@ -14,7 +14,9 @@ import type { Assignment, AssignmentSubmission } from '@/types/assignment';
 export default function AssignmentDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const assignmentId = Array.isArray(params.assignmentId) ? params.assignmentId[0] : params.assignmentId;
+  const assignmentId = params?.assignmentId ? (Array.isArray(params.assignmentId) ? params.assignmentId[0] : params.assignmentId) : null;
+  const validAssignmentId = assignmentId ?? ''; // Ensure assignmentId is a string
+
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [submission, setSubmission] = useState<AssignmentSubmission | null>(null);
   const [statusMessage, setStatusMessage] = useState('');
@@ -22,7 +24,7 @@ export default function AssignmentDetailPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!assignmentId) {
+    if (!validAssignmentId) {
       router.push('/assignments');
       return;
     }
@@ -30,8 +32,8 @@ export default function AssignmentDetailPage() {
     async function loadAssignment() {
       try {
         const [assignmentData, submissionData] = await Promise.all([
-          fetchAssignment(assignmentId),
-          fetchMyAssignmentSubmission(assignmentId).catch(() => null),
+          fetchAssignment(validAssignmentId),
+          fetchMyAssignmentSubmission(validAssignmentId).catch(() => null),
         ]);
 
         setAssignment(assignmentData);
@@ -46,7 +48,7 @@ export default function AssignmentDetailPage() {
     }
 
     loadAssignment();
-  }, [assignmentId, router]);
+  }, [validAssignmentId, router]);
 
   const handleDownloadAttachment = async (submissionId: number, filename: string) => {
     try {
@@ -80,7 +82,7 @@ export default function AssignmentDetailPage() {
               setSubmitting(true);
               setStatusMessage('');
               try {
-                const result = await submitAssignment(assignmentId, submissionLink);
+                const result = await submitAssignment(validAssignmentId, submissionLink);
                 setSubmission(result);
                 setStatusMessage('Assignment submitted successfully.');
               } catch (err: any) {

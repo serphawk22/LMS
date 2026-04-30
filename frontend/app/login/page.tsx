@@ -26,6 +26,21 @@ export default function LoginPage() {
       if (result.refresh_token) {
         window.localStorage.setItem('refresh_token', result.refresh_token);
       }
+      
+      // Extract and store tenant_id from the access token
+      try {
+        const tokenParts = result.access_token.split('.');
+        if (tokenParts.length === 3) {
+          const payload = JSON.parse(atob(tokenParts[1]));
+          if (payload.tenant_id) {
+            localStorage.setItem('tenant_id', String(payload.tenant_id));
+            console.log('[Login] Stored tenant_id:', payload.tenant_id);
+          }
+        }
+      } catch (e) {
+        console.warn('[Login] Could not extract tenant_id from token:', e);
+      }
+      
       router.push('/dashboard');
     } catch (err) {
       setError('Login failed. Check your email and password.');

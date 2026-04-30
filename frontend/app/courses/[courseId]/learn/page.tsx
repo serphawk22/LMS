@@ -17,8 +17,8 @@ export default function CourseLearnPage() {
   const params = useParams();
   const router = useRouter();
   const { role } = useAuth();
-  const rawCourseId = params.courseId ?? params.courseid;
-  const courseId = Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId;
+  const rawCourseId = params?.courseId ?? params?.courseid;
+  const courseId = rawCourseId ? (Array.isArray(rawCourseId) ? rawCourseId[0] : rawCourseId) : null;
   const [course, setCourse] = useState<CourseDetails | null>(null);
   const [structure, setStructure] = useState<CourseStructure | null>(null);
   const [loading, setLoading] = useState(true);

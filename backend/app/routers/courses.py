@@ -113,6 +113,8 @@ def get_course(
                 video_url = f"https://www.youtube.com/embed/{youtube_id}"
         elif lesson.content_payload and "file_url" in lesson.content_payload:
             video_url = lesson.content_payload["file_url"]
+        elif lesson.content_type == "external_link" and lesson.content_payload and "url" in lesson.content_payload:
+            video_url = lesson.content_payload["url"]
         
         course_lessons.append(schemas.CourseLessonRead(
             id=lesson.id,

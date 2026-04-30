@@ -79,7 +79,9 @@ export async function fetchAdminCourseAnalytics(courseId: number): Promise<Cours
   return response.data;
 }
 
-export async function fetchStudentNotifications(): Promise<DashboardNotificationItem[]> {
+
+// Generic notification fetch for any authenticated user (student, instructor, etc.)
+export async function fetchUserNotifications(): Promise<DashboardNotificationItem[]> {
   const response = await api.get('/notifications');
   return response.data;
 }

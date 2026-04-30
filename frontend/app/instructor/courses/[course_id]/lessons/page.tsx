@@ -37,7 +37,7 @@ export default function LessonManagementPage() {
   const { authenticated, role } = useAuth();
   const router = useRouter();
   const params = useParams();
-  const courseId = parseInt(params.course_id as string);
+  const courseId = parseInt(params?.course_id as string ?? '0');
 
   const [course, setCourse] = useState<CourseData | null>(null);
   const [structure, setStructure] = useState<CourseStructure | null>(null);

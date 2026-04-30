@@ -57,10 +57,6 @@ export default function AdminPage() {
             <h3 className="text-lg font-semibold">Instructor activities</h3>
             <p className="mt-2 text-sm text-slate-600">Monitor instructor workflows, assignments, and support actions.</p>
           </Link>
-          <Link href="/admin/analytics" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
-            <h3 className="text-lg font-semibold">Platform analytics</h3>
-            <p className="mt-2 text-sm text-slate-600">View engagement metrics, revenue, and system health trends.</p>
-          </Link>
           <Link href="/admin/comments" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md">
             <h3 className="text-lg font-semibold">Admin comments system</h3>
             <p className="mt-2 text-sm text-slate-600">Read and respond to administrative comments from staff.</p>
@@ -70,11 +66,7 @@ export default function AdminPage() {
         {loading ? (
           <div className="rounded-3xl bg-white p-10 text-slate-500 shadow-sm shadow-slate-200/40">Loading admin overview…</div>
         ) : overview ? (
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <p className="text-sm text-slate-500">Total organizations</p>
-              <p className="mt-4 text-3xl font-semibold text-slate-900">{overview.total_organizations}</p>
-            </div>
+          <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
               <p className="text-sm text-slate-500">Total users</p>
               <p className="mt-4 text-3xl font-semibold text-slate-900">{overview.total_users}</p>
@@ -86,10 +78,6 @@ export default function AdminPage() {
             <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
               <p className="text-sm text-slate-500">Active users</p>
               <p className="mt-4 text-3xl font-semibold text-slate-900">{overview.active_users}</p>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <p className="text-sm text-slate-500">Revenue</p>
-              <p className="mt-4 text-3xl font-semibold text-slate-900">${overview.revenue.toFixed(2)}</p>
             </div>
           </div>
         ) : null}

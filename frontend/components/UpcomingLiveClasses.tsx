@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getStudentLiveClasses, markAttendance, LiveClassForStudent } from '@/services/live_classes';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function UpcomingLiveClasses() {
   const router = useRouter();
+  const { initialized, tenantId } = useAuth();
   const [liveClasses, setLiveClasses] = useState<LiveClassForStudent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -13,6 +15,7 @@ export default function UpcomingLiveClasses() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
+    if (!initialized || !tenantId) return;
     fetchLiveClasses();
     // Refresh every 5 minutes
     const interval = setInterval(fetchLiveClasses, 5 * 60 * 1000);
@@ -21,7 +24,7 @@ export default function UpcomingLiveClasses() {
       clearInterval(interval);
       clearInterval(clock);
     };
-  }, []);
+  }, [initialized, tenantId]);
 
   const fetchLiveClasses = async () => {
     try {

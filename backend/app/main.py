@@ -183,10 +183,20 @@ def list_notifications_alias(
     db=Depends(get_db),
     current_user=Depends(get_current_active_user),
 ):
+    # Log incoming request details for debugging
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"[Notifications] User authenticated: {current_user.id}, email: {current_user.email}, org_id: {current_user.organization_id}")
+    
     organization = organization_service.get_organization_by_id(db, current_user.organization_id)
     if not organization:
+        logger.warning(f"[Notifications] Organization not found for user {current_user.id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Organization not found.")
-    return dashboard_service.list_user_notifications(db, current_user)
+    
+    logger.info(f"[Notifications] Fetching notifications for user {current_user.id}")
+    notifications = dashboard_service.list_user_notifications(db, current_user)
+    logger.info(f"[Notifications] Found {len(notifications)} notifications for user {current_user.id}")
+    return notifications
 
 
 @app.patch("/api/v1/notifications/{notification_id}/read", response_model=schemas.DashboardNotificationItem, tags=["dashboard"])

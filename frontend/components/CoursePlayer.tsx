@@ -286,17 +286,31 @@ export default function CoursePlayer({ lesson, modules, courseTitle, onNavigateL
                 </a>
               </div>
             ) : isExternalLinkLesson ? (
-              <div className="aspect-video overflow-hidden rounded-3xl bg-black">
-                <iframe
-                  src={lessonMediaUrl}
-                  width="100%"
-                  height="100%"
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  allowFullScreen
-                  title={lesson.title}
-                  className="h-full w-full"
-                />
-              </div>
+              <>
+                <div className="aspect-video overflow-hidden rounded-3xl bg-black">
+                  <iframe
+                    src={lessonMediaUrl}
+                    width="100%"
+                    height="100%"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    title={lesson.title}
+                    className="h-full w-full"
+                  />
+                </div>
+                {/* Show Google Drive link as a button below the player */}
+                {lessonMediaUrl && (
+                  <div className="mt-4 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={() => window.open(lessonMediaUrl, '_blank')}
+                      className="inline-flex items-center rounded-2xl border border-sky-200 bg-sky-50 px-6 py-3 text-base font-semibold text-sky-700 transition hover:border-sky-300 hover:bg-sky-100"
+                    >
+                      Open Google Drive Link in New Tab
+                    </button>
+                  </div>
+                )}
+              </>
             ) : lessonMediaUrl ? (
               <div className="aspect-video overflow-hidden rounded-3xl bg-black">
                 <video

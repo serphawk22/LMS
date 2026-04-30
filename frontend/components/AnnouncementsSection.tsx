@@ -22,10 +22,13 @@ export function AnnouncementsSection() {
         setAnnouncements(sorted);
         setError('');
       } catch (err) {
+        console.error('[Announcements] Load error:', err);
         const message = (err as { response?: { data?: { detail?: string } }; message?: string })?.response?.data?.detail
           || (err as { message?: string }).message
           || 'Failed to load announcements';
         setError(message);
+        // Don't show error to user, just show empty state
+        setAnnouncements([]);
       } finally {
         setLoading(false);
       }
@@ -53,8 +56,7 @@ export function AnnouncementsSection() {
       <div className="modern-card p-6">
         <h3 className="text-lg font-semibold text-slate-900 mb-4">Announcements</h3>
         <div className="text-center text-slate-500">
-          <p>Failed to load announcements</p>
-          <p className="text-sm mt-1">{error}</p>
+          <p>No announcements available</p>
         </div>
       </div>
     );

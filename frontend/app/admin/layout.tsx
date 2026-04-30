@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminHeader } from '@/components/AdminHeader';
+import { useTheme } from '@/components/ThemeProvider';
 
 /**
  * Admin layout: replaces the root Navbar with the dedicated AdminHeader.
@@ -13,6 +14,8 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { theme } = useTheme();
+
   return (
     <div id="admin-layout">
       {/*
@@ -30,7 +33,7 @@ export default function AdminLayout({
         }
       `}</style>
       <AdminHeader />
-      <div className="min-h-screen bg-slate-50">{children}</div>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--surface-strong)' }}>{children}</div>
     </div>
   );
 }

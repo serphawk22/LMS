@@ -51,9 +51,24 @@ def get_current_user(
     db: Session = Depends(get_db),
     tenant_id: str | None = Depends(get_tenant_optional),
 ) -> User:
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    token_preview = token[:30] + "..." if len(token) > 30 else token
+    logger.info(f"[Auth] Received token: {token_preview}")
+    logger.info(f"[Auth] Tenant from header: {tenant_id}")
+    if not tenant_id or tenant_id in ('null', 'undefined'):
+        logger.error("[Auth] No valid tenant_id in header or token")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing or invalid tenant header or token tenant data",
+        )
+
     try:
         payload = decode_token(token)
+        logger.info(f"[Auth] Token decoded successfully, payload keys: {list(payload.keys())}")
     except ValueError as exc:
+        logger.error(f"[Auth] Token decode failed: {exc}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -61,6 +76,7 @@ def get_current_user(
         ) from exc
 
     if payload.get("type") != "access":
+        logger.warning(f"[Auth] Invalid token type: {payload.get('type')}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token type",
@@ -69,8 +85,10 @@ def get_current_user(
 
     if not tenant_id:
         tenant_id = payload.get("tenant_id")
+        logger.info(f"[Auth] Tenant from token payload: {tenant_id}")
 
     if not tenant_id:
+        logger.error("[Auth] No tenant_id in header or token")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Missing tenant header or token tenant data",
@@ -78,6 +96,7 @@ def get_current_user(
 
     organization = get_organization_by_tenant(db, tenant_id)
     if not organization:
+        logger.error(f"[Auth] Organization not found for tenant: {tenant_id}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Unknown tenant",
@@ -93,6 +112,7 @@ def get_current_user(
 
     session_id = payload.get("session_id")
     if not isinstance(session_id, str):
+        logger.error(f"[Auth] Invalid session_id in token: {session_id}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid session payload",
@@ -105,7 +125,16 @@ def get_current_user(
         AuthSession.is_deleted == False,
     ).one_or_none()
 
-    if not auth_session or auth_session.is_revoked:
+    if not auth_session:
+        logger.error(f"[Auth] Session not found: {session_id}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session expired or revoked",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    if auth_session.is_revoked:
+        logger.warning(f"[Auth] Session revoked: {session_id}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session expired or revoked",
@@ -117,6 +146,7 @@ def get_current_user(
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
     if expires_at < now:
+        logger.warning(f"[Auth] Session expired: {session_id}, expired at {expires_at}, now {now}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session expired or revoked",
@@ -130,6 +160,7 @@ def get_current_user(
         auth_session.is_revoked = True
         db.add(auth_session)
         db.commit()
+        logger.warning(f"[Auth] Session timed out: {session_id}, last used {last_used_at}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session timed out",
@@ -139,6 +170,8 @@ def get_current_user(
     auth_session.last_used_at = datetime.now(timezone.utc)
     db.add(auth_session)
     db.commit()
+    
+    logger.info(f"[Auth] User {user.id} authenticated successfully, session: {session_id}")
 
     return user
 

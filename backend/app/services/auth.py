@@ -6,7 +6,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.config import settings
 from app.core.security import (
@@ -212,6 +212,7 @@ def authenticate_user(db: Session, email: str, password: str, tenant_id: str | N
 
         user = db.execute(
             select(User)
+            .options(selectinload(User.role))
             .where(User.organization_id == organization.id)
             .where(User.email == email)
             .limit(1)
@@ -219,6 +220,7 @@ def authenticate_user(db: Session, email: str, password: str, tenant_id: str | N
     else:
         users = db.execute(
             select(User)
+            .options(selectinload(User.role))
             .where(User.email == email)
             .limit(2)
         ).scalars().all()
@@ -337,6 +339,7 @@ def get_user_by_token_payload(db: Session, payload: dict[str, Any]) -> User | No
 
     return db.execute(
         select(User)
+        .options(selectinload(User.role))
         .where(User.id == user_id)
         .where(User.organization_id == tenant_id)
         .limit(1)

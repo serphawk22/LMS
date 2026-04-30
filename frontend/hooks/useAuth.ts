@@ -55,12 +55,18 @@ export function useAuth(): AuthState {
     const role = (payload.role as string) ?? null;
     const isAdmin = role && adminRoles.includes(role);
     const userId = payload.sub ? String(payload.sub) : null;
+    const tenantIdFromToken = payload.tenant_id ? String(payload.tenant_id) : null;
+
+    // Save tenant_id to localStorage if present in token
+    if (tenantIdFromToken && typeof window !== 'undefined') {
+      window.localStorage.setItem('tenant_id', tenantIdFromToken);
+    }
 
     setState({
       authenticated: true,
       initialized: true,
       role,
-      tenantId: payload.tenant_id ? String(payload.tenant_id) : null,
+      tenantId: tenantIdFromToken,
       userId,
       user: userId ? { id: userId } : null,
       organization: null,

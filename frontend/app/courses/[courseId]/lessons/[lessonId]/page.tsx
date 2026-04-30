@@ -14,8 +14,8 @@ export default function LessonPlayerPage() {
   const params = useParams();
   const router = useRouter();
   const { role } = useAuth();
-  const courseId = Array.isArray(params.courseId) ? params.courseId[0] : params.courseId;
-  const lessonId = Array.isArray(params.lessonId) ? params.lessonId[0] : params.lessonId;
+  const courseId = params?.courseId ? (Array.isArray(params.courseId) ? params.courseId[0] : params.courseId) : null;
+  const lessonId = params?.lessonId ? (Array.isArray(params.lessonId) ? params.lessonId[0] : params.lessonId) : null;
 
   const [course, setCourse] = useState<CourseStructure | null>(null);
   const [lesson, setLesson] = useState<Lesson | null>(null);

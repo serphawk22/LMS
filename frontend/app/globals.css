@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 @layer utilities {
+  /* Base background overrides */
   .bg-white {
     background-color: var(--card-color) !important;
   }
@@ -12,10 +13,20 @@
   .bg-slate-100 {
     background-color: var(--surface-strong) !important;
   }
+  .bg-gray-50,
+  .bg-gray-100 {
+    background-color: var(--surface-strong) !important;
+  }
+  /* Base border overrides */
   .border-slate-200,
   .border-slate-300 {
     border-color: var(--border-color) !important;
   }
+  .border-gray-200,
+  .border-gray-300 {
+    border-color: var(--border-color) !important;
+  }
+  /* Base text overrides */
   .text-slate-900 {
     color: var(--text-color) !important;
   }
@@ -26,13 +37,8 @@
   .text-slate-300 {
     color: var(--muted-color) !important;
   }
-  .bg-gray-50,
-  .bg-gray-100 {
-    background-color: var(--surface-strong) !important;
-  }
-  .border-gray-200,
-  .border-gray-300 {
-    border-color: var(--border-color) !important;
+  .text-gray-900 {
+    color: var(--text-color) !important;
   }
   .text-gray-500,
   .text-gray-600,
@@ -40,6 +46,25 @@
   .text-gray-800 {
     color: var(--muted-color) !important;
   }
+  /* Form input overrides */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    background-color: var(--surface-strong) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-color) !important;
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted-color) !important;
+    opacity: 0.7;
+  }
+  /* Dark theme specific overrides */
   [data-theme='dark'] [class*="bg-white/"],
   [data-theme='dark'] [class*="bg-slate-50/"],
   [data-theme='dark'] [class*="bg-slate-100/"] {
@@ -64,6 +89,40 @@
   [data-theme='dark'] [class*="text-gray-700"],
   [data-theme='dark'] [class*="text-gray-800"] {
     color: rgba(148, 163, 184, 0.8) !important;
+  }
+  /* Additional hardcoded color overrides for instructor pages */
+  [data-theme='dark'] .bg-indigo-50,
+  [data-theme='dark'] .bg-blue-50,
+  [data-theme='dark'] .bg-rose-50,
+  [data-theme='dark'] .bg-emerald-50,
+  [data-theme='dark'] .bg-amber-50,
+  [data-theme='dark'] .bg-sky-50 {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+  }
+  [data-theme='dark'] .text-indigo-700,
+  [data-theme='dark'] .text-blue-700,
+  [data-theme='dark'] .text-rose-700,
+  [data-theme='dark'] .text-emerald-700,
+  [data-theme='dark'] .text-amber-700,
+  [data-theme='dark'] .text-sky-700 {
+    color: rgba(148, 163, 184, 0.9) !important;
+  }
+  [data-theme='dark'] .border-indigo-200,
+  [data-theme='dark'] .border-blue-200,
+  [data-theme='dark'] .border-rose-200,
+  [data-theme='dark'] .border-emerald-200,
+  [data-theme='dark'] .border-amber-200,
+  [data-theme='dark'] .border-sky-200 {
+    border-color: rgba(56, 189, 248, 0.2) !important;
+  }
+  /* Force theme-aware styles for common patterns */
+  [data-theme='light'] .theme-card {
+    background-color: var(--card-color) !important;
+    border-color: var(--border-color) !important;
+  }
+  [data-theme='dark'] .theme-card {
+    background-color: var(--card-color) !important;
+    border-color: var(--border-color) !important;
   }
 }
 

@@ -20,7 +20,7 @@ export default function DiscussionDetailPage() {
   const { authenticated, initialized, role } = useAuth();
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const discussionId = Number(params.id);
+  const discussionId = Number(params?.id ?? 0);
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [discussion, setDiscussion] = useState<DiscussionDetail | null>(null);

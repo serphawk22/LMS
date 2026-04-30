@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/components/ThemeProvider';
 import {
   fetchInstructorCourses,
   createCourse,
@@ -72,6 +73,7 @@ type Tab = 'courses' | 'create' | 'edit' | 'structure' | 'quizzes' | 'assignment
 
 export default function InstructorPage() {
   const { authenticated, role, userId } = useAuth();
+  const { theme } = useTheme();
   const router = useRouter();
 
   const [tab, setTab] = useState<Tab>('courses');
@@ -684,14 +686,14 @@ export default function InstructorPage() {
   /* ──────────────────────────────────────────────────────────── */
 
   return (
-    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900 sm:px-6">
+    <main className="min-h-screen px-4 py-10 sm:px-6" style={{ backgroundColor: 'var(--surface-strong)', color: 'var(--text-color)' }}>
       <div className="w-full space-y-8">
 
         {/* ── header ─────────────────────────────────────── */}
-        <section className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 px-8 py-10 text-white shadow-2xl sm:px-12">
-          <p className="text-xs uppercase tracking-[0.35em] text-indigo-400">Instructor panel</p>
+        <section className="overflow-hidden rounded-[2rem] px-8 py-10 shadow-2xl sm:px-12" style={{ background: 'linear-gradient(to bottom right, var(--text-color), #1e293b, var(--text-color))', color: 'var(--bg-color)' }}>
+          <p className="text-xs uppercase tracking-[0.35em]" style={{ color: 'var(--primary-color)' }}>Instructor panel</p>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Course management</h1>
-          <p className="mt-4 max-w-xl text-slate-300 text-sm sm:text-base">Create, edit, publish and organise your courses, modules and lessons from one place.</p>
+          <p className="mt-4 max-w-xl text-sm sm:text-base" style={{ color: 'rgba(255,255,255,0.7)' }}>Create, edit, publish and organise your courses, modules and lessons from one place.</p>
 
           <div className="mt-8 flex flex-wrap gap-2">
             {(['courses', 'create', 'quizzes', 'assignments', 'submissions', 'results', 'announcements', 'live_classes', 'discussions'] as Tab[]).map((t) => (
@@ -699,23 +701,27 @@ export default function InstructorPage() {
                 key={t}
                 type="button"
                 onClick={() => { setTab(t); if (t === 'create') { setForm({ ...emptyForm }); setEditId(null); } }}
-                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === t ? 'bg-white text-slate-900' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition ${tab === t ? '' : ''}`}
+                style={{
+                  backgroundColor: tab === t ? 'var(--bg-color)' : 'rgba(255,255,255,0.1)',
+                  color: tab === t ? 'var(--text-color)' : 'var(--bg-color)'
+                }}
               >
                 {t === 'courses' ? 'My courses' : t === 'create' ? 'New course' : t === 'quizzes' ? 'Quizzes' : t === 'assignments' ? 'Assignments' : t === 'submissions' ? 'Submissions' : t === 'results' ? 'Results' : t === 'announcements' ? 'Announcements' : t === 'live_classes' ? 'Live Classes' : 'Discussions'}
               </button>
             ))}
             {tab === 'edit' && (
-              <button type="button" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900">
+              <button type="button" className="rounded-full px-5 py-2.5 text-sm font-semibold" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}>
                 Edit course
               </button>
             )}
             {tab === 'structure' && (
-              <button type="button" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900">
+              <button type="button" className="rounded-full px-5 py-2.5 text-sm font-semibold" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}>
                 Course structure
               </button>
             )}
             {tab === 'live_classes' && (
-              <button type="button" className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900">
+              <button type="button" className="rounded-full px-5 py-2.5 text-sm font-semibold" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-color)' }}>
                 Live Classes
               </button>
             )}
@@ -752,14 +758,20 @@ export default function InstructorPage() {
                 placeholder="Search courses…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                className="flex-1 rounded-xl border px-4 py-2.5 text-sm outline-none transition"
+                style={{ borderColor: 'var(--border-color)', backgroundColor: 'var(--surface-strong)', color: 'var(--text-color)' }}
+                placeholder="Search courses…"
               />
               {(['all', 'draft', 'published'] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setFilterStatus(s)}
-                  className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition ${filterStatus === s ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                  className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-wider transition ${filterStatus === s ? '' : ''}`}
+                  style={{
+                    backgroundColor: filterStatus === s ? 'var(--primary-color)' : 'var(--surface-strong)',
+                    color: filterStatus === s ? 'white' : 'var(--muted-color)'
+                  }}
                 >
                   {s}
                 </button>
@@ -767,57 +779,58 @@ export default function InstructorPage() {
             </div>
 
             {loading ? (
-              <div className="rounded-2xl bg-white p-10 text-center text-slate-500 shadow-sm">Loading courses…</div>
+              <div className="rounded-2xl p-10 text-center shadow-sm" style={{ backgroundColor: 'var(--card-color)', color: 'var(--muted-color)' }}>Loading courses…</div>
             ) : filteredCourses.length === 0 ? (
-              <div className="rounded-2xl bg-white p-10 text-center text-slate-500 shadow-sm">
+              <div className="rounded-2xl p-10 text-center shadow-sm" style={{ backgroundColor: 'var(--card-color)', color: 'var(--muted-color)' }}>
                 {courses.length === 0 ? 'No courses yet. Create your first course!' : 'No courses match your filter.'}
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filteredCourses.map((course) => (
-                  <article key={course.id} className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-indigo-300 hover:shadow-md">
+                  <article key={course.id} className="group relative flex flex-col rounded-2xl border p-6 shadow-sm transition hover:shadow-md" style={{ backgroundColor: 'var(--card-color)', borderColor: 'var(--border-color)' }}>
                     {/* thumbnail */}
                     {course.thumbnail_url ? (
-                      <div className="mb-4 h-36 overflow-hidden rounded-xl bg-slate-100">
+                      <div className="mb-4 h-36 overflow-hidden rounded-xl" style={{ backgroundColor: 'var(--surface-strong)' }}>
                         <img src={course.thumbnail_url} alt="" className="h-full w-full object-cover" />
                       </div>
                     ) : (
-                      <div className="mb-4 flex h-36 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-sky-50">
-                        <span className="text-4xl font-bold text-indigo-200">{course.title[0]}</span>
+                      <div className="mb-4 flex h-36 items-center justify-center rounded-xl" style={{ background: 'linear-gradient(to bottom right, rgba(59, 130, 246, 0.1), rgba(6, 182, 212, 0.1))' }}>
+                        <span className="text-4xl font-bold" style={{ color: 'var(--primary-color)', opacity: 0.5 }}>{course.title[0]}</span>
                       </div>
                     )}
 
                     {/* badges */}
                     <div className="mb-3 flex flex-wrap gap-2">
-                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${course.is_published ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${course.is_published ? '' : ''}`}
+                        style={{ backgroundColor: course.is_published ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: course.is_published ? '#22c55e' : '#f59e0b' }}>
                         {course.is_published ? 'Published' : 'Draft'}
                       </span>
-                      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                      <span className="inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: 'var(--surface-strong)', color: 'var(--muted-color)' }}>
                         {course.level}
                       </span>
-                      <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">
+                      <span className="inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider" style={{ backgroundColor: 'var(--surface-strong)', color: 'var(--muted-color)' }}>
                         {course.visibility}
                       </span>
                     </div>
 
-                    <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{course.title}</h3>
-                    <p className="mt-2 flex-1 text-sm text-slate-500 line-clamp-2">{course.short_description || course.description || 'No description'}</p>
+                    <h3 className="text-lg font-semibold line-clamp-2" style={{ color: 'var(--text-color)' }}>{course.title}</h3>
+                    <p className="mt-2 flex-1 text-sm line-clamp-2" style={{ color: 'var(--muted-color)' }}>{course.short_description || course.description || 'No description'}</p>
 
                     {/* meta */}
-                    <div className="mt-4 flex items-center gap-4 text-xs text-slate-500">
+                    <div className="mt-4 flex items-center gap-4 text-xs" style={{ color: 'var(--muted-color)' }}>
                       {course.average_rating > 0 && <span>★ {course.average_rating.toFixed(1)} ({course.review_count})</span>}
                       {course.duration_minutes ? <span>{course.duration_minutes} min</span> : null}
                       {course.category && <span>{course.category.name}</span>}
                     </div>
 
                     {/* actions */}
-                    <div className="mt-5 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
-                      <button type="button" onClick={() => handleEdit(course)} className="rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100">Edit</button>
-                      <button type="button" onClick={() => openStructure(course.id)} className="rounded-lg bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 transition hover:bg-sky-100">Structure</button>
-                      <button type="button" onClick={() => handleTogglePublish(course)} className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100">
+                    <div className="mt-5 flex flex-wrap gap-2 border-t pt-4" style={{ borderColor: 'var(--border-color)' }}>
+                      <button type="button" onClick={() => handleEdit(course)} className="rounded-lg px-3 py-1.5 text-xs font-semibold transition" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: 'var(--primary-color)' }}>Edit</button>
+                      <button type="button" onClick={() => openStructure(course.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold transition" style={{ backgroundColor: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4' }}>Structure</button>
+                      <button type="button" onClick={() => handleTogglePublish(course)} className="rounded-lg px-3 py-1.5 text-xs font-semibold transition" style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', color: '#22c55e' }}>
                         {course.is_published ? 'Unpublish' : 'Publish'}
                       </button>
-                      <button type="button" onClick={() => handleDelete(course.id)} className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-600 transition hover:bg-rose-100">Delete</button>
+                      <button type="button" onClick={() => handleDelete(course.id)} className="rounded-lg px-3 py-1.5 text-xs font-semibold transition" style={{ backgroundColor: 'rgba(244, 63, 94, 0.1)', color: '#f43f5e' }}>Delete</button>
                     </div>
                   </article>
                 ))}
